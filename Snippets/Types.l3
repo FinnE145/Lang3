@@ -1,0 +1,26 @@
+num = :;
+num num.round = [num n, ?str mode]:
+    ##
+    [n] - Round the number to the nearest multiple of :n;
+    [?mode] - The rounding mode to use. Possible values are:
+        ="nearest"|"n" - If the number is exactly halfway between two multiples, round to the nearest even number.
+        ,"nearest-up"|"nu" - If the number is exactly halfway between two multiples, round up.
+        ,"nearest-down"|"nd" - If the number is exactly halfway between two multiples, round down.
+        ,"up"|"u" - Always round up
+        ,"down"|"d" - Always round down
+    > num
+    ##
+;
+
+num num.roundToPlaces = [num d, ?str mode]:
+    ##
+    [d] - Round the number to :p; decimal digits. Negative numbers round to the nearest power of 10.
+    [?mode] - The rounding mode to use. Possible values are:
+        ="nearest"|"n" - If the number is exactly halfway between two multiples, round to the nearest even number.
+        ,"nearest-up"|"nu" - If the number is exactly halfway between two multiples, round up.
+        ,"nearest-down"|"nd" - If the number is exactly halfway between two multiples, round down.
+        ,"up"|"u" - Always round up
+        ,"down"|"d" - Always round down
+    > num
+    ##
+;
