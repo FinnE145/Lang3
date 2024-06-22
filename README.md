@@ -1,13 +1,19 @@
 # Lang3
 A lightweight statically typed OOP scripting language with flexible structures.
 
-> For a thorough introduction to Lang3, and more information on syntax, structures, and other aspects and features of the language, check out the [Documentation Jupyter Notebook](https://github.com/FinnE145/Lang3/blob/main/Docs/Lang3Docs.ipynb).
+> For a thorough introduction to Lang3, and more information on syntax, structures, and other aspects and features of the language, check out the [Documentation Jupyter Notebook](https://github.com/FinnE145/Lang3/blob/main/Docs/Lang3Docs.ipynb). Soon, a website will be linked here with documentation, download options, and a page to write Lang3 code in your browser and run it on our servers.
 
 > Note that Lang3 is a placeholder name, and will be changed at a later date. If you have a name suggestion, submit an [issue](https://github.com/FinnE145/Lang3/issues/new) with the [`enhancement`](https://github.com/FinnE145/Lang3/labels/enhancement) tag.
+
+## Download
+
+Lang3 is still in the early development stage, and is not available for download yet. Soon, a webside will be added here where Lang3 can be run. In the meantime, feel free to download the repo and complile the C# yourself!
 
 ## What is Lang3?
 
 Lang3 is a lightweight non-traditional OO language with static typing featuring comprehensive type prediction.
+
+It is written in C#, will be an interpreted language (so far at least).
 
 Objects are created flexibly with simple syntax that allows for many helpful features, including objects with a root value in addition to their properties.
 
