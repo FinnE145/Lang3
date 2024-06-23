@@ -36,12 +36,12 @@ To use the kernel, you must create a Python virtual environment and install ipyk
 **This assumes you have Python installed and are using PowerShell (or cmd)**. If this is not the case, you will have to look up how to install Python and install an IPython kernel for your OS.
 
 1. Download this repository, unzip it if necessary, and save it in a convenient location.
-2. Run `python -m venv ./venv_folder_name` in the terminal to create a virtual environment in the current directory.
-3. Run `./venv_folder_name/Scripts/activate`, or run one of the activate scripts in `./venv_folder_name/Scripts`, depending on your current terminal requirements.
+2. Run `python -m venv path/to/venv` in the terminal to create a virtual environment in the current directory.
+3. Run `path/to/venv/Scripts/activate`, or run one of the activate scripts in `path/to/venv/Scripts`, depending on your current terminal requirements.
 4. Run `pip install ipykernel`
 5. Run `pip install -e path/to/repository/Kernel` to install the kernel as a python module that will update when edited
-6. Run `python -m ipykernel install --name 'EchoLang3' --prefix './venv_folder_name'`.
-7. Navigate to `./.venv/share/jupyter/kernels/echolang3` and modify the string `"ipykernel_lancher"` in `argv` to say `"echo_kernel"`. Change the `language` to `"lang3"`.
-8. Open the docs Jupyter Notebook, or any other Jupyter Notebook that you want, and select EchoLang3 from your venv. This may vary by which program you use to open the notebook.
+6. Run `python -m ipykernel install --name 'EchoLang3' --prefix 'path/to/venv'`.
+7. Navigate to `path/to/share/jupyter/kernels/echolang3` and modify the string `"ipykernel_lancher"` in `argv` to say `"echo_kernel"`. Change the `language` to `"lang3"`.
+8. Open the docs Jupyter Notebook, or any other Jupyter Notebook that you want, and select `EchoLang3` from your venv. This may vary by which program you use to open the notebook.
 
 Now when you run cells, it should output the exact contents of the cell!
