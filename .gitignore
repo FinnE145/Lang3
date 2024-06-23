@@ -2,3 +2,5 @@ testNB.ipynb
 .venv
 __pycache__
 .vscode
+obj
+bin
