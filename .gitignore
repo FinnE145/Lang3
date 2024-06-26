@@ -1,6 +1,8 @@
 testNB.ipynb
 .venv
 __pycache__
-.vscode
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
 obj
 bin
