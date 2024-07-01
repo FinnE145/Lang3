@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Lang3.Utils.Errors;
 
 namespace Lang3;
 
@@ -16,8 +17,10 @@ class Lang3Runner {
             code = File.ReadAllText(fp) + "\n";
         } catch (FileNotFoundException) {
             throw new Exception($"File {fp} doesn't exist");
+        } catch (DirectoryNotFoundException) {
+            throw new Exception($"Directory {fp} doesn't exist");
+        } catch (IOException) {
+            throw new Exception($"Couldn't read file {fp}");
         }
-
-        Console.Write(code);
     }
 }
