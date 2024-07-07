@@ -1,25 +1,26 @@
+using System.Security;
+
 namespace Lang3.Utils.Errors;
 
 class Error {
-    readonly string errorName = "Error";
-    readonly string defaultMessage = "An error occurred.";
-    readonly string defaultFile = "Lang3 Runtime";
-    readonly string defaultSample = "";
-    readonly int defaultLine = -1;
-    readonly int defaultStart = -1;
-    readonly int defaultEnd = -1;
-    readonly int defaultErrorCode = 1;
+    static readonly string errorName = "Error";
+    static readonly string defaultMessage = "An error occurred.";
+    static readonly string defaultFile = "Lang3 Runtime";
+    static readonly int defaultErrorCode = 1;
 
     public Error(string? message = null, string[]? files = null, string[]? samples = null, int[]? lines = null, int[]? starts = null, int[]? ends = null, int? errorCode = null) {
-        message ??= this.defaultMessage;
-        files ??= [this.defaultFile];
-        samples ??= [this.defaultSample];
-        lines ??= [this.defaultLine];
-        starts ??= [this.defaultStart];
-        ends ??= [this.defaultEnd];
-        errorCode ??= this.defaultErrorCode;
+        
+    }
 
-        if (files.Length != samples.Length || samples.Length != lines.Length || lines.Length != starts.Length || starts.Length != ends.Length) {
+    private static void Raise(string? errorName = "Error", string? message = null, string[]? files = null, string[]? samples = null, int[]? lines = null, int[]? starts = null, int[]? ends = null, int? errorCode = null) {
+        message ??= defaultMessage;
+        files ??= [defaultFile];
+        errorCode ??= defaultErrorCode;
+
+        List<Array?> arrs = new([lines, starts, ends]);
+        List<Array> nonNulls = arrs.RemoveAll(a => a is null);
+
+        if (nonNulls.All(a => a.Length != nonNulls[0].Length)) {
             throw new Exception("All arrays must be the same length");
         }
 
@@ -32,11 +33,11 @@ class Error {
         for (int i = 0; i < files.Length; i++) {
             Console.ForegroundColor = ConsoleColor.Yellow;
             string loc = $"{Path.GetFileName(files[i])}";
-            if (lines[i] != -1) {
+            if (lines?[i] is not null) {
                 loc += $":{lines[i]}";
-                if (starts[i] != -1) {
+                if (starts?[i] is not null) {
                     loc += $":{starts[i]}";
-                    if (ends[i] != -1) {
+                    if (ends?[i] is not null) {
                         loc = $"-{ends[i]}";
                     }
                 }
@@ -44,9 +45,11 @@ class Error {
             Console.Write($"{loc}> ");
 
             Console.ResetColor();
-            Console.WriteLine(samples[i].Trim().Contains('\n') ? samples[i].Split('\n')[lines[i]] : samples[i]);
+            Console.WriteLine(samples[i].Trim().Contains('\n') ? samples[i].Split('\n')[lines?[i] ?? 0] : samples[i]);
         }
     }
 
-    public Error(Lexer.Token[] tokens, string? message = null, string[]? files = null, string[]? samples = null, int? errorCode = null) : this(message, files, samples, tokens?.Select(t => t.line).ToArray(), tokens?.Select(t => t.start).ToArray(), tokens?.Select(t => t.end).ToArray(), errorCode) {}
+    public Error(Lexer.Token[] tokens, string? message = null, string[]? files = null, string[]? samples = null, int? errorCode = null) :
+        this(message, files, samples, tokens?.Select(t => t.line).ToArray(), tokens?.Select(t => t.start).ToArray(), tokens?.Select(t => t.end).ToArray(), errorCode)
+    {}
 }
