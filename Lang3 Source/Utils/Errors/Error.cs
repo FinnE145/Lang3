@@ -1,6 +1,6 @@
 using System.Security;
 
-namespace Lang3.Utils.Errors;
+namespace Lang3.Utils.ErrorTypes;
 
 class Error {
     static readonly string errorName = "Error";
@@ -9,18 +9,18 @@ class Error {
     static readonly int defaultErrorCode = 1;
 
     public Error(string? message = null, string[]? files = null, string[]? samples = null, int[]? lines = null, int[]? starts = null, int[]? ends = null, int? errorCode = null) {
-        
+        Raise(errorName, message, files, samples, lines, starts, ends, errorCode);
     }
 
-    private static void Raise(string? errorName = "Error", string? message = null, string[]? files = null, string[]? samples = null, int[]? lines = null, int[]? starts = null, int[]? ends = null, int? errorCode = null) {
+    public static void Raise(string? errorName = "Error", string? message = null, string[]? files = null, string[]? samples = null, int[]? lines = null, int[]? starts = null, int[]? ends = null, int? errorCode = null) {
         message ??= defaultMessage;
         files ??= [defaultFile];
         errorCode ??= defaultErrorCode;
 
-        List<Array?> arrs = new([lines, starts, ends]);
-        List<Array> nonNulls = arrs.RemoveAll(a => a is null);
+        List<Array?> nonNulls = new([lines, starts, ends]);
+        nonNulls.RemoveAll(a => a is null);
 
-        if (nonNulls.All(a => a.Length != nonNulls[0].Length)) {
+        if (nonNulls.Any(a => a?.Length != nonNulls?[0]?.Length)) {
             throw new Exception("All arrays must be the same length");
         }
 
@@ -45,11 +45,13 @@ class Error {
             Console.Write($"{loc}> ");
 
             Console.ResetColor();
-            Console.WriteLine(samples[i].Trim().Contains('\n') ? samples[i].Split('\n')[lines?[i] ?? 0] : samples[i]);
+            if (samples?[i] is not null) {
+                Console.WriteLine(samples[i].Trim().Contains('\n') ? samples[i].Split('\n')[lines?[i] ?? 0] : samples?[i]);
+            }
         }
     }
 
-    public Error(Lexer.Token[] tokens, string? message = null, string[]? files = null, string[]? samples = null, int? errorCode = null) :
-        this(message, files, samples, tokens?.Select(t => t.line).ToArray(), tokens?.Select(t => t.start).ToArray(), tokens?.Select(t => t.end).ToArray(), errorCode)
-    {}
+    public Error(Lexer.Token[] tokens, string? message = null, string[]? files = null, string[]? samples = null, int? errorCode = null) {
+        Raise(errorName, message, files, samples, tokens?.Select(t => t.line).ToArray(), tokens?.Select(t => t.start).ToArray(), tokens?.Select(t => t.end).ToArray(), errorCode);
+    }
 }
