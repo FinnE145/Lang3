@@ -23,7 +23,7 @@ class Lexer(Dictionary<string, string> files) {
     public List<Token> Lex(string fp) {
         files.TryGetValue(fp, out string? code);
         if (code is null) {
-            err.Raise(2, [fp, "found"]);
+            //err.Raise(2, [fp, "found"]);
         }
         Console.WriteLine($"Lexing {code} from {fp}");
         return [];

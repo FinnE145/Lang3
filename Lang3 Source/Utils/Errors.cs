@@ -33,10 +33,34 @@ class Errors(Dictionary<string, string> files) : DynamicObject {
         if (!Enum.TryParse<ErrorNames>(binder.Name, out ErrorNames error)) {
             result = null;
             return false;
+        } else if (args is not null && args.Length > 0) {
+            if (args.Length >= 1 && args[0] is not null && args[0]?.GetType() != typeof(string[])) {
+                 throw new ArgumentException("Argument 'msgArgs' (1) must be of type string[].");
+            }
+            if (args.Length >= 2 && args[1] is not null) {
+                if (args[1]?.GetType() == typeof(string)) {
+                    if (
+                        (args.Length >= 3 && args[2] is not null && args[2]?.GetType() != typeof(int)) ||
+                        (args.Length >= 4 && args[3] is not null && args[3]?.GetType() != typeof(int)) ||
+                        (args.Length >= 5 && args[2] is not null && args[4]?.GetType() != typeof(int))
+                    ) {
+                        throw new ArgumentException("Arguments 'line' (3), 'start' (4), and 'end' (5) must all be of type int.");
+                    } else if (args.Length >= 6 && args[5] is not null && args[5]?.GetType() != typeof(bool)) {
+                        throw new ArgumentException("Argument 'fatal' (6) must be of type bool.");
+                    }
+                    result = Raise((int) Enum.Parse<ErrorNames>(binder.Name), args[0] as string[], args[1] as string, args.Length >= 3 ? args[2] as int? : null, args.Length >= 4 ? args[3] as int? : null, args.Length >= 5 ? args[4] as int? : null, args.Length <= 6 || (args[6] as bool? ?? true));
+                } else if (args[1]?.GetType() == typeof(Lexer.Token)) {
+                    result = Raise((int) Enum.Parse<ErrorNames>(binder.Name), args[0] as string[], args[1] as Lexer.Token);
+                } else {
+                    throw new ArgumentException("Argument 2 must be of type string ('file') or Lexer.Token ('token').");
+                }
+            } else {
+                result = Raise((int) Enum.Parse<ErrorNames>(binder.Name), args[0] as string[]);
+            }
         } else {
-            result = error + "INVOKED";
-            return true;
+            result = Raise((int) Enum.Parse<ErrorNames>(binder.Name));
         }
+        return true;
     }
 
     private int Raise(int errorCode, string[]? msgArgs = null, string? file = null, int? line = null, int? start = null, int? end = null, bool fatal = true) {
