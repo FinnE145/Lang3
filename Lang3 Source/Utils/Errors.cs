@@ -31,39 +31,76 @@ class Errors(Dictionary<string, string> files) : DynamicObject {
 
     public override bool TryInvokeMember(InvokeMemberBinder binder, object?[]? args, out object? result) {
         if (!Enum.TryParse<ErrorNames>(binder.Name, out ErrorNames error)) {
+            // Error doesn't exist
             result = null;
             return false;
         } else if (args is not null && args.Length > 0) {
-            if (args.Length >= 1 && args[0] is not null && args[0]?.GetType() != typeof(string[])) {
+            // There are arguments
+            if (args.Length >= 1 && args[0] is not null && args[0]?.GetType() == typeof(string)) {
+                // The first argument is a string
+                List<string> msgArgs = [];
+                int i;
+                for (i = 0; i < args.Length; i++) {
+                    // Add arguments to msgArgs until a non-string is found
+                    object? s = args[i];
+                    if ((s?.GetType() ?? typeof(string)) == typeof(string)) {
+                        msgArgs.Add((string?) s ?? "");
+                    } else {
+                        break;
+                    }
+                }
+                if (args.Length == i + 1 && args[i]?.GetType() != typeof(Lexer.Token)) {
+                    // The first arg after the string is not a Lexer.Token
+                    throw new ArgumentException("Argument 'token' must be of type Lexer.Token.");
+                } else if (args.Length == i + 2 && (args[i]?.GetType() != typeof(Lexer.Token) || args[i]?.GetType() != typeof(bool))) {
+                    // The first arg after the string is not a Lexer.Token or the second arg is not a bool
+                    throw new ArgumentException("Arguments 'token' and 'fatal' must be of type Lexer.Token and bool, respectively.");
+                }
+                // Print an error with the token overload
+                result = Raise((int) error, [.. msgArgs], args.Length >= i + 1 ? args[i] as Lexer.Token : null, args.Length >= i + 2 ? args[i + 1] as bool? : null);
+            } else if (args.Length >= 1 && args[0] is not null && args[0]?.GetType() != typeof(string[])) {
+                // 1 or more args and the first arg is not a string[]
                  throw new ArgumentException("Argument 'msgArgs' (1) must be of type string[].");
             }
-            if (args.Length >= 2 && args[1] is not null) {
-                if (args[1]?.GetType() == typeof(string)) {
+            if (args.Length >= 2) {
+                // 2 or more args and the second arg is not null
+                if ((args[1] is null && args.Length > 2) || args[1]?.GetType() == typeof(string)) {
+                    // The second arg is null and there are more args or the second arg is a string
                     if (
                         (args.Length >= 3 && args[2] is not null && args[2]?.GetType() != typeof(int)) ||
                         (args.Length >= 4 && args[3] is not null && args[3]?.GetType() != typeof(int)) ||
                         (args.Length >= 5 && args[2] is not null && args[4]?.GetType() != typeof(int))
                     ) {
+                        // 3, 4, or 5 args and the 3rd, 4th, or 5th arg is not an int
                         throw new ArgumentException("Arguments 'line' (3), 'start' (4), and 'end' (5) must all be of type int.");
                     } else if (args.Length >= 6 && args[5] is not null && args[5]?.GetType() != typeof(bool)) {
+                        // 6 args and the 6th arg is not a bool
                         throw new ArgumentException("Argument 'fatal' (6) must be of type bool.");
                     }
-                    result = Raise((int) Enum.Parse<ErrorNames>(binder.Name), args[0] as string[], args[1] as string, args.Length >= 3 ? args[2] as int? : null, args.Length >= 4 ? args[3] as int? : null, args.Length >= 5 ? args[4] as int? : null, args.Length <= 6 || (args[6] as bool? ?? true));
+                    // Print an error with the explicit location overload
+                    result = Raise((int) Enum.Parse<ErrorNames>(binder.Name), args[0] as string[], args[1] as string, args.Length >= 3 ? args[2] as int? : null, args.Length >= 4 ? args[3] as int? : null, args.Length >= 5 ? args[4] as int? : null, args.Length >= 6 ? args[5] as bool? : null);
                 } else if (args[1]?.GetType() == typeof(Lexer.Token)) {
+                    // The second arg is a Lexer.Token
+                    // Print an error with the token overload
                     result = Raise((int) Enum.Parse<ErrorNames>(binder.Name), args[0] as string[], args[1] as Lexer.Token);
                 } else {
+                    // The second arg is not a string or Lexer.Token
                     throw new ArgumentException("Argument 2 must be of type string ('file') or Lexer.Token ('token').");
                 }
             } else {
+                // 1 arg or the second arg is null
+                // Raise an error with the explicit location overload, with no location
                 result = Raise((int) Enum.Parse<ErrorNames>(binder.Name), args[0] as string[]);
             }
         } else {
+            // 
+            // Raise an error with no msgArgs or location
             result = Raise((int) Enum.Parse<ErrorNames>(binder.Name));
         }
         return true;
     }
 
-    private int Raise(int errorCode, string[]? msgArgs = null, string? file = null, int? line = null, int? start = null, int? end = null, bool fatal = true) {
+    private int Raise(int errorCode, string[]? msgArgs = null, string? file = null, int? line = null, int? start = null, int? end = null, bool? fatal = true) {
         string? sample = null;
         if (file is not null) {
             files.TryGetValue(file, out sample);
@@ -120,13 +157,13 @@ class Errors(Dictionary<string, string> files) : DynamicObject {
         }
         Console.ResetColor();
 
-        if (fatal) {
+        if (fatal ?? true) {
             Environment.Exit(errorCode);
         }
         return errorCode;
     }
 
-    private int Raise(int errorCode, string[]? msgArgs, Lexer.Token? token) {
-        return Raise(errorCode, msgArgs, token?.file, token?.line, token?.start, token?.end);
+    private int Raise(int errorCode, string[]? msgArgs, Lexer.Token? token, bool? fatal = true) {
+        return Raise(errorCode, msgArgs, token?.file, token?.line, token?.start, token?.end, fatal);
     }
 }

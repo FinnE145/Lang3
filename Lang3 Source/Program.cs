@@ -9,7 +9,7 @@ class Lang3Runner {
         string fp;
         if (args.Length == 0) {
             fp = "C:/Users/finne/OneDrive/Documents/0coding/Lang3_Ghub/Lang3 Test Files/test.l3";
-            //fp = "nonexistantFile.l3";
+            fp = "nonexistantFile.l3";
         } else {
             fp = args[0];
         }
@@ -18,21 +18,22 @@ class Lang3Runner {
         try {
             code = File.ReadAllText(fp) + "\n";
         } catch (FileNotFoundException) {
-            err.IOError(new string[] {fp, "found"});
+            err.IOError(fp, "found");
             //err.Raise(2, new List<string>([fp, "found"]));
             //throw new Exception($"File {fp} doesn't exist");
         } catch (DirectoryNotFoundException) {
-            err.IOError(new string[] {fp, "found"});
+            err.IOError(fp, "found");
             //err.Raise(2, new List<string>([fp, "found"]));
             //throw new Exception($"Directory {fp} doesn't exist");
         } catch (IOException) {
-            err.IOError(new string[] {fp, "accessed"});
+            err.IOError(fp, "accessed");
             //err.Raise(2, new List<string>([fp, "accessed"]));
             //throw new Exception($"Couldn't read file {fp}");
         }
 
         files.Add(fp, code);
 
-        err.NonexistentError();
+        Lexer lexer = new(files);
+        List<Lexer.Token> tokens = lexer.Lex(fp);
     }
 }
