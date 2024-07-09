@@ -20,12 +20,77 @@ class Lexer(Dictionary<string, string> files) {
 
     readonly Errors err = new(files);
 
+    private readonly Dictionary<string, string> keywords = new() {
+        {"if", "if"},
+        {"else", "else"},
+        {"while", "while"},
+        {"for", "for"},
+        {"return", "return"},
+        {"?", "blank"}
+    };
+
+    private readonly Dictionary<string, string> opers = new() {
+        {"+", "add"},
+        {"-", "sub"},
+        {"*", "mul"},
+        {"/", "div"},
+        {"**", "exp"},
+        {"/^", "root"},
+        {"//", "iDiv"},
+        {"%", "mod"},
+        {">", "gt"},
+        {"<", "lt"},
+        {">=", "gte"},
+        {"<=", "lte"},
+        {"==", "eq"},
+        {"!=", "neq"},
+        {"&&", "and"},
+        {"||", "or"},
+        {"&", "bAnd"},
+        {"|", "bOr"},
+        {"^", "xor"},
+        {"<<", "lShift"},
+        {">>", "rShift"},
+        {"=", "assign"},
+        {"+=", "addAssign"},
+        {"-=", "subAssign"},
+        {"*=", "mulAssign"},
+        {"/=", "divAssign"},
+        {"**=", "expAssign"},
+        {"/^=", "rootAssign"},
+        {"//=", "iDivAssign"},
+        {"%=", "modAssign"},
+        {"&&=", "andAssign"},
+        {"||=", "orAssign"},
+        {"&=", "bAndAssign"},
+        {"|=", "bOrAssign"},
+        {"^=", "xorAssign"},
+        {"<<=", "lShiftAssign"},
+        {">>=", "rShiftAssign"},
+        {"++", "inc"},
+        {"--", "dec"},
+        {"!", "not"}
+    };
+
+    private readonly Dictionary<string, string> brackets = new() {
+        {"(", "lParen"},
+        {")", "rParen"},
+        {"[", "lBracket"},
+        {"]", "rBracket"},
+        {"{", "lBrace"},
+        {"}", "rBrace"},
+        {":", "lCode"},
+        {";", "rCode"}
+    };
+
+    internal static readonly char[] opStarts = ['+', '-', '*', '/', '%', '>', '<', '=', '&', '|', '^', '!'];
+
     public List<Token> Lex(string fp) {
         files.TryGetValue(fp, out string? code);
         if (code is null) {
-            //err.Raise(2, [fp, "found"]);
+            throw new FileNotFoundException($"Tried to lex {fp} but it doesn't exist.");
         }
-        Console.WriteLine($"Lexing {code} from {fp}");
+        Console.WriteLine($"Lexing \n'{code.TrimEnd()}' from {fp}");
         return [];
     }
 }
