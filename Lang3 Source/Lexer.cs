@@ -85,7 +85,8 @@ class Lexer(Dictionary<string, string> files) {
 
     internal static readonly char[] opStarts = ['+', '-', '*', '/', '%', '>', '<', '=', '&', '|', '^', '!'];
 
-    private Token BucketNum(string code, int line, int ld, string fp, ref int i) {
+    private Token BucketNum(int line, int ld, string fp, ref int i) {
+        string code = files[fp]!;
         int start = i++;
         string t = "int";
         while (i-- < code.Length && (char.IsDigit(code[++i]) || code[i] == '.')) {
@@ -100,6 +101,11 @@ class Lexer(Dictionary<string, string> files) {
             throw new Exception("Number cannot end with a decimal point");
         }
         return new Token(t, code[start..(i+1)], line, start-ld, i-ld+1, fp);
+    }
+
+    private Token BucketBracket(int line, int ld, string fp, ref int i) {
+        string code = files[fp]!;
+        return new Token(brackets[code[i].ToString()], code[i].ToString(), line, i-ld, i-ld+1, fp);
     }
 
     public List<Token> Lex(string fp) {
@@ -127,7 +133,13 @@ class Lexer(Dictionary<string, string> files) {
             }
 
             if (char.IsDigit(c)) {
-                tokens.Add(BucketNum(code, line, ld, fp, ref i));
+                tokens.Add(BucketNum(line, ld, fp, ref i));
+                continue;
+            }
+
+            if (brackets.ContainsKey(c.ToString())) {
+                tokens.Add(BucketBracket(line, ld, fp, ref i));
+                continue;
             }
 
             string v = c != '\n' ? c.ToString() : "\\n";

@@ -9,12 +9,14 @@ class Errors(Dictionary<string, string> files) : DynamicObject {
         Error,          // 1
         IOError,        // 2
         InternalError,  // 3
+        MalformedTokenError,  // 4
     }
     private readonly List<string> messageTemplates = [
         "This is not an error.",    // 0 - None
         "An error occurred.",       // 1 - Error
         "`{0}` could not be {1}.",  // 2 - IOError
         "An error occurred inside the compiler code:\n{0}",  // 3 - InternalError
+        "Malformed token: {0}",     // 4 - MalformedTokenError
     ];
 
     public override IEnumerable<string> GetDynamicMemberNames() {
