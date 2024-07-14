@@ -34,6 +34,117 @@ class Errors(Dictionary<string, string> files) : DynamicObject {
     }
 
     public override bool TryInvokeMember(InvokeMemberBinder binder, object?[]? args, out object? result) {
+        if (!Enum.TryParse<ErrorNames>(binder.Name, out ErrorNames error)) {
+            result = null;
+            return false;
+        }
+
+        CallInfo callInfo = binder.CallInfo;
+        callInfo.
+
+        args ??= [];
+
+        List<string> msgArgs = [];
+        int i = 0;
+        for (i = 0; i < args.Length; i++) {
+            object? s = args[i];
+            if ((s?.GetType() ?? typeof(string)) == typeof(string)) {
+                msgArgs.Add((string?)s ?? "");
+            } else {
+                break;
+            }
+        }
+
+        List<> _overloadOptions = [
+            (
+                (int) error,
+                args.Length >= 1 ? args[0] as string[] : null,
+                args.Length >= 2 ? args[1] as string : null,
+                args.Length >= 3 ? args[2] as int? : null,
+                args.Length >= 4 ? args[3] as int? : null,
+                args.Length >= 5 ? args[4] as int? : null,
+                args.Length >= 6 ? args[5] as bool? : null
+            ),
+            (
+                (int) error,
+                args.Length >= 1 ? args[0] as string[] : null,
+                args.Length >= 2 ? args[1] as Lexer.Token : null,
+                args.Length >= 3 ? args[2] as bool? : null
+            ),
+            (
+                (int) error,
+                msgArgs.ToArray(),
+                args.Length >= i + 1 ? args[i] as string : null,
+                args.Length >= i + 2 ? args[i + 1] as int? : null,
+                args.Length >= i + 3 ? args[i + 2] as int? : null,
+                args.Length >= i + 4 ? args[i + 3] as int? : null,
+                args.Length >= i + 5 ? args[i + 4] as bool? : null
+            ),
+            (
+                (int) error,
+                msgArgs.ToArray(),
+                args.Length >= i + 1 ? args[i] as Lexer.Token : null,
+                args.Length >= i + 2 ? args[i + 1] as bool? : null
+            ),
+            (
+                (int) error,
+                args.Length >= 1 ? args[0] as string[] : null
+            ),
+            (
+                (int) error
+            )
+        ];
+
+        List<object?[]> overloadOptions = [
+            [
+                (int) error,
+                args.Length >= 1 ? args[0] as string[] : null,
+                args.Length >= 2 ? args[1] as string : null,
+                args.Length >= 3 ? args[2] as int? : null,
+                args.Length >= 4 ? args[3] as int? : null,
+                args.Length >= 5 ? args[4] as int? : null,
+                args.Length >= 6 ? args[5] as bool? : null
+            ],
+            [
+                (int) error,
+                args.Length >= 1 ? args[0] as string[] : null,
+                args.Length >= 2 ? args[1] as Lexer.Token : null,
+                args.Length >= 3 ? args[2] as bool? : null
+            ],
+            [
+                (int) error,
+                msgArgs.ToArray(),
+                args.Length >= i + 1 ? args[i] as string : null,
+                args.Length >= i + 2 ? args[i + 1] as int? : null,
+                args.Length >= i + 3 ? args[i + 2] as int? : null,
+                args.Length >= i + 4 ? args[i + 3] as int? : null,
+                args.Length >= i + 5 ? args[i + 4] as bool? : null
+            ],
+            [
+                (int) error,
+                msgArgs.ToArray(),
+                args.Length >= i + 1 ? args[i] as Lexer.Token : null,
+                args.Length >= i + 2 ? args[i + 1] as bool? : null
+            ],
+            [
+                (int) error,
+                args.Length >= 1 ? args[0] as string[] : null
+            ],
+            [
+                (int) error
+            ]
+        ];
+
+        foreach (object?[] overload in overloadOptions) {
+            foreach(object? o in overload) {
+                Console.WriteLine(o?.ToString() ?? "null");
+            }
+        }
+        result = 0;
+        return true;
+    }
+
+    public  bool _TryInvokeMember(InvokeMemberBinder binder, object?[]? args, out object? result) {
         // Error(string[]? msgArgs, string? file = null, int? line = null, int? start = null, int? end = null, bool? fatal = true)
         // Error(string? msg, string? file = null, int? line = null, int? start = null, int? end = null, bool? fatal = true)
         // Error(string[]? msgArgs, Lexer.Token? token, bool? fatal = true)
