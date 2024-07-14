@@ -34,6 +34,11 @@ class Errors(Dictionary<string, string> files) : DynamicObject {
     }
 
     public override bool TryInvokeMember(InvokeMemberBinder binder, object?[]? args, out object? result) {
+        // Error(string[]? msgArgs, string? file = null, int? line = null, int? start = null, int? end = null, bool? fatal = true)
+        // Error(string? msg, string? file = null, int? line = null, int? start = null, int? end = null, bool? fatal = true)
+        // Error(string[]? msgArgs, Lexer.Token? token, bool? fatal = true)
+        // Error(string msgArg..., Lexer.Token? token, bool? fatal = true)
+
         if (!Enum.TryParse<ErrorNames>(binder.Name, out ErrorNames error)) {
             // Error doesn't exist
 
@@ -72,7 +77,7 @@ class Errors(Dictionary<string, string> files) : DynamicObject {
                  throw new ArgumentException("Argument 'msgArgs' (1) must be of type string[].");
             }
             if (args.Length >= 2) {
-                // 2 or more args and the second arg is not null
+                // 2 or more args
 
                 if ((args[1] is null && args.Length >= 3 && args[2]?.GetType() == typeof(int)) || args[1]?.GetType() == typeof(string)) {
                     // The second arg is null and there are more args with the next one being an int, or the second arg is a string

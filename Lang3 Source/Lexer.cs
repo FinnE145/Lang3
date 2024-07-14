@@ -18,7 +18,7 @@ class Lexer(Dictionary<string, string> files) {
 
     readonly Dictionary<string, string> files = files;
 
-    readonly Errors err = new(files);
+    readonly dynamic err = new Errors(files);
 
     private readonly Dictionary<string, string> keywords = new() {
         {"if", "if"},
@@ -92,15 +92,25 @@ class Lexer(Dictionary<string, string> files) {
         while (i-- < code.Length && (char.IsDigit(code[++i]) || code[i] == '.')) {
             if (code[i++] == '.') {
                 if (t == "dec") {
-                    throw new Exception("Number cannot have two decimal points");
+                    err.MalformedTokenError("Number cannot have two decimal points", fp, line, start-ld, i-ld+1);
                 }
                 t = "dec";
             }
         }
         if (code[--i] == '.') {
-            throw new Exception("Number cannot end with a decimal point");
+            err.MalformedTokenError("Number cannot end with a decimal point", fp, line, start-ld, i-ld+1);
         }
         return new Token(t, code[start..(i+1)], line, start-ld, i-ld+1, fp);
+    }
+
+    private Token BucketOp(int line, int ld, string fp, ref int i) {
+        string code = files[fp]!;
+        int start = i++;
+        while (i < code.Length && opers.ContainsKey(code[start..(i+1)])) {
+            i++;
+        }
+        string sample = code[start..(--i+1)];
+        return new Token(sample == "++" || sample == "--" || sample == "!" ? "uOperator" : "operator", opers[sample], line, start-ld, i-ld+1, fp);
     }
 
     private Token BucketBracket(int line, int ld, string fp, ref int i) {
@@ -144,6 +154,11 @@ class Lexer(Dictionary<string, string> files) {
 
             if (char.IsDigit(c)) {
                 tokens.Add(BucketNum(line, ld, fp, ref i));
+                continue;
+            }
+
+            if (opStarts.Contains(c)) {
+                tokens.Add(BucketOp(line, ld, fp, ref i));
                 continue;
             }
 
