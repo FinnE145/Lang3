@@ -108,6 +108,16 @@ class Lexer(Dictionary<string, string> files) {
         return new Token(brackets[code[i].ToString()], code[i].ToString(), line, i-ld, i-ld+1, fp);
     }
 
+    private Token BucketWord(int line, int ld, string fp, ref int i) {
+        string code = files[fp]!;
+        int start = i++;
+        while (i < code.Length && (char.IsLetter(code[i]) || char.IsDigit(code[i]) || code[i] == '_')) {
+            i++;
+        }
+        string s = code[start..i--];
+        return new Token(keywords.TryGetValue(s, out string? value) ? value : "var", s, line, start-ld, i-ld+1, fp);
+    }
+
     public List<Token> Lex(string fp) {
         int line = 1;
         int ld = 0;
@@ -139,6 +149,11 @@ class Lexer(Dictionary<string, string> files) {
 
             if (brackets.ContainsKey(c.ToString())) {
                 tokens.Add(BucketBracket(line, ld, fp, ref i));
+                continue;
+            }
+
+            if (char.IsLetter(c) || c == '_') {
+                tokens.Add(BucketWord(line, ld, fp, ref i));
                 continue;
             }
 
