@@ -1,4 +1,5 @@
 using System.Dynamic;
+using System.Reflection;
 
 namespace Lang3.Utils;
 
@@ -39,9 +40,6 @@ class Errors(Dictionary<string, string> files) : DynamicObject {
             return false;
         }
 
-        CallInfo callInfo = binder.CallInfo;
-        callInfo.
-
         args ??= [];
 
         List<string> msgArgs = [];
@@ -50,13 +48,18 @@ class Errors(Dictionary<string, string> files) : DynamicObject {
             object? s = args[i];
             if ((s?.GetType() ?? typeof(string)) == typeof(string)) {
                 msgArgs.Add((string?)s ?? "");
+            } else if (s?.GetType() == typeof(int)){
+                msgArgs.RemoveAt(i--);
+                break;
             } else {
                 break;
             }
         }
 
-        List<> _overloadOptions = [
-            (
+        result = GetType().GetMethod("Raise", BindingFlags.NonPublic | BindingFlags.Instance, args.Select(a => a?.GetType()).Where(a => a is not null).ToArray()!)?.Invoke(this, [(int) error, msgArgs.ToArray(), args[i..]]);
+
+        /* try {
+            result = Raise(
                 (int) error,
                 args.Length >= 1 ? args[0] as string[] : null,
                 args.Length >= 2 ? args[1] as string : null,
@@ -64,36 +67,47 @@ class Errors(Dictionary<string, string> files) : DynamicObject {
                 args.Length >= 4 ? args[3] as int? : null,
                 args.Length >= 5 ? args[4] as int? : null,
                 args.Length >= 6 ? args[5] as bool? : null
-            ),
-            (
-                (int) error,
-                args.Length >= 1 ? args[0] as string[] : null,
-                args.Length >= 2 ? args[1] as Lexer.Token : null,
-                args.Length >= 3 ? args[2] as bool? : null
-            ),
-            (
-                (int) error,
-                msgArgs.ToArray(),
-                args.Length >= i + 1 ? args[i] as string : null,
-                args.Length >= i + 2 ? args[i + 1] as int? : null,
-                args.Length >= i + 3 ? args[i + 2] as int? : null,
-                args.Length >= i + 4 ? args[i + 3] as int? : null,
-                args.Length >= i + 5 ? args[i + 4] as bool? : null
-            ),
-            (
-                (int) error,
-                msgArgs.ToArray(),
-                args.Length >= i + 1 ? args[i] as Lexer.Token : null,
-                args.Length >= i + 2 ? args[i + 1] as bool? : null
-            ),
-            (
-                (int) error,
-                args.Length >= 1 ? args[0] as string[] : null
-            ),
-            (
-                (int) error
-            )
-        ];
+            );
+        } catch (ArgumentException) {
+            try {
+                result = Raise(
+                    (int) error,
+                    args.Length >= 1 ? args[0] as string[] : null,
+                    args.Length >= 2 ? args[1] as Lexer.Token : null,
+                    args.Length >= 3 ? args[2] as bool? : null
+                );
+            } catch (ArgumentException) {
+                try {
+                    result = Raise(
+                        (int) error,
+                        [.. msgArgs],
+                        args.Length >= i + 1 ? args[i] as string : null,
+                        args.Length >= i + 2 ? args[i + 1] as int? : null,
+                        args.Length >= i + 3 ? args[i + 2] as int? : null,
+                        args.Length >= i + 4 ? args[i + 3] as int? : null,
+                        args.Length >= i + 5 ? args[i + 4] as bool? : null
+                    );
+                } catch (ArgumentException) {
+                    try {
+                        result = Raise(
+                            (int) error,
+                            [.. msgArgs],
+                            args.Length >= i + 1 ? args[i] as Lexer.Token : null,
+                            args.Length >= i + 2 ? args[i + 1] as bool? : null
+                        );
+                    } catch (ArgumentException) {
+                        try {
+                            result = Raise(
+                                (int) error,
+                                args.Length >= 1 ? args[0] as string[] : null
+                            );
+                        } catch (ArgumentException) {
+                            result = Raise((int) error);
+                        }
+                    }
+                }
+            }
+        }
 
         List<object?[]> overloadOptions = [
             [
@@ -133,15 +147,9 @@ class Errors(Dictionary<string, string> files) : DynamicObject {
             [
                 (int) error
             ]
-        ];
+        ]; */
 
-        foreach (object?[] overload in overloadOptions) {
-            foreach(object? o in overload) {
-                Console.WriteLine(o?.ToString() ?? "null");
-            }
-        }
-        result = 0;
-        return true;
+        return result != null;
     }
 
     public  bool _TryInvokeMember(InvokeMemberBinder binder, object?[]? args, out object? result) {
@@ -252,7 +260,7 @@ class Errors(Dictionary<string, string> files) : DynamicObject {
         try {
             str = string.Format(messageTemplates[errorCode], msgArgs ?? []).Split('`');
         } catch (FormatException) {
-            throw new ArgumentException("Message arguments do not match the template for that error.");
+            throw new FormatException("Message arguments do not match the template for that error.");
         }
         
         for (int i = 0; i < str.Length; i++) {

@@ -7,7 +7,7 @@ class Lang3Runner {
         Dictionary<string, string> files = [];
         dynamic err = new Errors(files);
 
-        err.Error(0, new List<string>(["test"]));
+        err.MalformedTokenError("test");
         try {
             string fp;
             if (args.Length == 0) {
