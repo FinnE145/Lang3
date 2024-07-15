@@ -56,7 +56,7 @@ class Errors(Dictionary<string, string> files) : DynamicObject {
             }
         }
 
-        result = GetType().GetMethod("Raise", BindingFlags.NonPublic | BindingFlags.Instance, args.Select(a => a?.GetType()).Where(a => a is not null).ToArray()!)?.Invoke(this, [(int) error, msgArgs.ToArray(), args[i..]]);
+        result = GetType().GetMethod("Raise", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly, args.Select(a => a?.GetType()).Where(a => a is not null).ToArray()!)?.Invoke(this, [(int) error, msgArgs.ToArray(), args[i..]]);
 
         /* try {
             result = Raise(
