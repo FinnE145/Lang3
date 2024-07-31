@@ -1,24 +1,16 @@
 ﻿using System.Diagnostics;
-
+using System.Reflection.Metadata.Ecma335;
 using Lang3.Utils;
+using static Lang3.Utils.Errors.ErrorNames;
 
 namespace Lang3;
 
 class Lang3Runner {
     public static void Main(string[] args) {
         Dictionary<string, string> files = [];
-        dynamic err = new Errors(files);
-        ErrorsStatic errS = new(files);
 
-        Stopwatch sw = new();
-        sw.Start();
-        err.MalformedTokenError("This uses a dynamic object", false);
-        sw.Stop();
-        Console.WriteLine($"Time: {sw.ElapsedMilliseconds}");
-        sw.Restart();
-        errS.Raise(4, ["This doesnt"], null, null, null, null, false);
-        sw.Stop();
-        Console.WriteLine($"Time: {sw.ElapsedMilliseconds}");
+        Errors err = new(files);
+
         try {
             string fp;
             if (args.Length == 0) {
@@ -32,15 +24,15 @@ class Lang3Runner {
             try {
                 code = File.ReadAllText(fp) + "\n";
             } catch (FileNotFoundException) {
-                err.IOError(fp, "found");
+                err.Raise(IOError, [fp, "found"]);
                 //err.Raise(2, new List<string>([fp, "found"]));
                 //throw new Exception($"File {fp} doesn't exist");
             } catch (DirectoryNotFoundException) {
-                err.IOError(fp, "found");
+                err.Raise(IOError, [fp, "found"]);
                 //err.Raise(2, new List<string>([fp, "found"]));
                 //throw new Exception($"Directory {fp} doesn't exist");
             } catch (IOException) {
-                err.IOError(fp, "accessed");
+                err.Raise(IOError, [fp, "accessed"]);
                 //err.Raise(2, new List<string>([fp, "accessed"]));
                 //throw new Exception($"Couldn't read file {fp}");
             }
@@ -50,7 +42,7 @@ class Lang3Runner {
             Lexer lexer = new(files);
             List<Lexer.Token> tokens = lexer.Lex(fp);
         } catch (Exception e) {
-            err.InternalError(e.Message);
+            err.Raise(InternalError, e.Message);
         }
     }
 }

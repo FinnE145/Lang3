@@ -1,4 +1,5 @@
 using Lang3.Utils;
+using static Lang3.Utils.Errors.ErrorNames;
 
 namespace Lang3;
 
@@ -18,7 +19,7 @@ class Lexer(Dictionary<string, string> files) {
 
     readonly Dictionary<string, string> files = files;
 
-    readonly dynamic err = new Errors(files);
+    readonly Errors err = new(files);
 
     private readonly Dictionary<string, string> keywords = new() {
         {"if", "if"},
@@ -92,13 +93,13 @@ class Lexer(Dictionary<string, string> files) {
         while (i-- < code.Length && (char.IsDigit(code[++i]) || code[i] == '.')) {
             if (code[i++] == '.') {
                 if (t == "dec") {
-                    err.MalformedTokenError("Number cannot have two decimal points", fp, line, start-ld, i-ld+1);
+                    err.Raise(MalformedTokenError, "Number cannot have two decimal points", fp, line, start-ld, i-ld+1);
                 }
                 t = "dec";
             }
         }
         if (code[--i] == '.') {
-            err.MalformedTokenError("Number cannot end with a decimal point", fp, line, start-ld, i-ld+1);
+            err.Raise(MalformedTokenError, "Number cannot end with a decimal point", fp, line, start-ld, i-ld+1);
         }
         return new Token(t, code[start..(i+1)], line, start-ld, i-ld+1, fp);
     }
