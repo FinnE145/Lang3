@@ -6,18 +6,18 @@ namespace Lang3.Utils;
 class Errors(Dictionary<string, string> files) : DynamicObject {
     private readonly Dictionary<string, string> files = files;
     private enum ErrorNames {
-        Success,        // 0
-        Error,          // 1
-        IOError,        // 2
-        InternalError,  // 3
-        MalformedTokenError,  // 4
+        Success,                // 0
+        Error,                  // 1
+        IOError,                // 2
+        InternalError,          // 3
+        MalformedTokenError,    // 4
     }
-    private readonly List<string> messageTemplates = [
-        "This is not an error.",    // 0 - None
-        "An error occurred.",       // 1 - Error
-        "`{0}` could not be {1}.",  // 2 - IOError
-        "An error occurred inside the compiler code:\n{0}",  // 3 - InternalError
-        "Malformed token: {0}",     // 4 - MalformedTokenError
+    private readonly List<List<string>> messageTemplates = [
+        ["Code ran without error"],      // 0 - None
+        ["An error occurred."],         // 1 - Error
+        ["`{0}` could not be {1}."],    // 2 - IOError
+        ["An error occurred inside the compiler:\n{0}"],    // 3 - InternalError
+        ["{0}"],                        // 4 - MalformedTokenError
     ];
 
     public override IEnumerable<string> GetDynamicMemberNames() {
@@ -41,75 +41,50 @@ class Errors(Dictionary<string, string> files) : DynamicObject {
         }
 
         args ??= [];
-
-        List<string> msgArgs = [];
-        int i = 0;
-        for (i = 0; i < args.Length; i++) {
-            object? s = args[i];
-            if ((s?.GetType() ?? typeof(string)) == typeof(string)) {
-                msgArgs.Add((string?)s ?? "");
-            } else if (s?.GetType() == typeof(int)){
-                msgArgs.RemoveAt(i--);
-                break;
-            } else {
-                break;
-            }
-        }
-
-        result = GetType().GetMethod("Raise", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly, args.Select(a => a?.GetType()).Where(a => a is not null).ToArray()!)?.Invoke(this, [(int) error, msgArgs.ToArray(), args[i..]]);
-
-        /* try {
-            result = Raise(
-                (int) error,
-                args.Length >= 1 ? args[0] as string[] : null,
-                args.Length >= 2 ? args[1] as string : null,
-                args.Length >= 3 ? args[2] as int? : null,
-                args.Length >= 4 ? args[3] as int? : null,
-                args.Length >= 5 ? args[4] as int? : null,
-                args.Length >= 6 ? args[5] as bool? : null
-            );
-        } catch (ArgumentException) {
-            try {
-                result = Raise(
-                    (int) error,
-                    args.Length >= 1 ? args[0] as string[] : null,
-                    args.Length >= 2 ? args[1] as Lexer.Token : null,
-                    args.Length >= 3 ? args[2] as bool? : null
-                );
-            } catch (ArgumentException) {
-                try {
-                    result = Raise(
-                        (int) error,
-                        [.. msgArgs],
-                        args.Length >= i + 1 ? args[i] as string : null,
-                        args.Length >= i + 2 ? args[i + 1] as int? : null,
-                        args.Length >= i + 3 ? args[i + 2] as int? : null,
-                        args.Length >= i + 4 ? args[i + 3] as int? : null,
-                        args.Length >= i + 5 ? args[i + 4] as bool? : null
-                    );
-                } catch (ArgumentException) {
-                    try {
-                        result = Raise(
-                            (int) error,
-                            [.. msgArgs],
-                            args.Length >= i + 1 ? args[i] as Lexer.Token : null,
-                            args.Length >= i + 2 ? args[i + 1] as bool? : null
-                        );
-                    } catch (ArgumentException) {
-                        try {
-                            result = Raise(
-                                (int) error,
-                                args.Length >= 1 ? args[0] as string[] : null
-                            );
-                        } catch (ArgumentException) {
-                            result = Raise((int) error);
-                        }
-                    }
+        if ((args[0]?.GetType() ?? typeof(string[])) != typeof(string[])) {
+            List<string> msgArgs = [];
+            int i = 0;
+            for (i = 0; i < args.Length; i++) {
+                object? s = args[i];
+                if ((s?.GetType() ?? typeof(string)) == typeof(string)) {
+                    msgArgs.Add((string?)s ?? "");
+                } else if (s?.GetType() == typeof(int)){
+                    msgArgs.RemoveAt(i--);
+                    break;
+                } else {
+                    break;
                 }
             }
+
+            args = [msgArgs.ToArray(), ..args[i++..]];
         }
 
-        List<object?[]> overloadOptions = [
+        Console.WriteLine($"args: [{string.Join(", ", args)}]");
+
+        //result = GetType().GetMethod("Raise", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly, args.Select(a => a?.GetType()).Where(a => a is not null).ToArray()!)?.Invoke(this, [(int) error, msgArgs.ToArray(), args[i..]]);
+
+        if (args.Length == 0) {
+            Console.WriteLine("Trying to raise error with no arguments...");
+            result = Raise((int) error);
+            return true;
+        } else if (args.Length == 1 && args[0] is bool) {
+            Console.WriteLine("Trying to raise error with only fatal...");
+            result = Raise((int) error, args[0] as bool?);
+            return true;
+        } else if (args.Length == 1) {
+            Console.WriteLine("Trying to raise error with only msgArgs...");
+            result = Raise((int) error, args[0] as string[]);
+        } else if (args.Length == 2 && args[1] is string) {
+            Console.WriteLine("Trying to raise error with msgArgs and file...");
+            result = Raise((int) error, args[0] as string[], args[1] as string);
+            return true;
+        } else if (args.Length == 5 && args[1] is string && args[2] is int && args[3] is int && args[4] is int) {
+            Console.WriteLine("Trying to raise error with msgArgs, file, line, start, and end...");
+            result = Raise((int) error, args[0] as string[], args[1] as string, args[2] as int?, args[3] as int?, args[4] as int?);
+            return true;
+        }
+
+        /* List<object?[]> overloadOptions = [
             [
                 (int) error,
                 args.Length >= 1 ? args[0] as string[] : null,
@@ -245,23 +220,42 @@ class Errors(Dictionary<string, string> files) : DynamicObject {
     }
 
     private int Raise(int errorCode, string[]? msgArgs = null, string? file = null, int? line = null, int? start = null, int? end = null, bool? fatal = true) {
+        Console.WriteLine("Raise called with values:");
+        Console.WriteLine($"errorCode: {errorCode}");
+        Console.Write($"msgArgs: [");
+        Array.ForEach(msgArgs?[..^1] ?? [], s => Console.Write($"'{s}', "));
+        Console.WriteLine($"{msgArgs?[^1]}]");
+        Console.WriteLine($"file: {file}");
+        Console.WriteLine($"line: {line}");
+        Console.WriteLine($"start: {start}");
+        Console.WriteLine($"end: {end}");
+        Console.WriteLine($"fatal: {fatal}");
+
         string? sample = null;
         if (file is not null) {
             files.TryGetValue(file, out sample);
         }
         sample = line is not null ? sample?.Split('\n')[(int) line] : sample;
 
+        string[] str;
+        int msgOverload = 0;
+        try {
+            while (true) {
+                try {
+                    str = string.Format(messageTemplates[errorCode][msgOverload], msgArgs ?? []).Split('`');
+                    break;
+                } catch (FormatException) {
+                    msgOverload++;
+                }
+            }
+        } catch (IndexOutOfRangeException) {
+            throw new ArgumentException("Message arguments do not match the template for that error.");
+        }
+
         Console.ForegroundColor = ConsoleColor.Red;
         Console.Write($"{(ErrorNames) errorCode} [{errorCode}]");
         Console.ResetColor();
         Console.Write(": ");
-
-        string[] str;
-        try {
-            str = string.Format(messageTemplates[errorCode], msgArgs ?? []).Split('`');
-        } catch (FormatException) {
-            throw new FormatException("Message arguments do not match the template for that error.");
-        }
         
         for (int i = 0; i < str.Length; i++) {
             Console.Write(str[i++]);
@@ -309,5 +303,13 @@ class Errors(Dictionary<string, string> files) : DynamicObject {
 
     private int Raise(int errorCode, string[]? msgArgs, Lexer.Token? token, bool? fatal = true) {
         return Raise(errorCode, msgArgs, token?.file, token?.line, token?.start, token?.end, fatal);
+    }
+
+    private int Raise(int errorCode, string[]? msgArgs, bool? fatal) {
+        return Raise(errorCode, msgArgs, null, null, null, null, fatal);
+    }
+
+    private int Raise(int errorCode, bool? fatal) {
+        return Raise(errorCode, null, null, null, null, null, fatal);
     }
 }

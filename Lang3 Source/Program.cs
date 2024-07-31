@@ -1,4 +1,6 @@
-﻿using Lang3.Utils;
+﻿using System.Diagnostics;
+
+using Lang3.Utils;
 
 namespace Lang3;
 
@@ -7,7 +9,11 @@ class Lang3Runner {
         Dictionary<string, string> files = [];
         dynamic err = new Errors(files);
 
-        err.MalformedTokenError("test");
+        Stopwatch sw = new();
+        sw.Start();
+        err.MalformedTokenError("test", false);
+        sw.Stop();
+        Console.WriteLine($"Time: {sw.ElapsedMilliseconds}");
         try {
             string fp;
             if (args.Length == 0) {
