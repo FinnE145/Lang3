@@ -59,29 +59,47 @@ class Errors(Dictionary<string, string> files) : DynamicObject {
             args = [msgArgs.ToArray(), ..args[i++..]];
         }
 
-        Console.WriteLine($"args: [{string.Join(", ", args)}]");
+        //Console.WriteLine($"args: [{string.Join(", ", args)}]");
 
         //result = GetType().GetMethod("Raise", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly, args.Select(a => a?.GetType()).Where(a => a is not null).ToArray()!)?.Invoke(this, [(int) error, msgArgs.ToArray(), args[i..]]);
 
         if (args.Length == 0) {
-            Console.WriteLine("Trying to raise error with no arguments...");
+            //Console.WriteLine("Trying to raise error with no arguments...");
             result = Raise((int) error);
             return true;
         } else if (args.Length == 1 && args[0] is bool) {
-            Console.WriteLine("Trying to raise error with only fatal...");
+            //Console.WriteLine("Trying to raise error with only fatal...");
             result = Raise((int) error, args[0] as bool?);
             return true;
         } else if (args.Length == 1) {
-            Console.WriteLine("Trying to raise error with only msgArgs...");
+            //Console.WriteLine("Trying to raise error with only msgArgs...");
             result = Raise((int) error, args[0] as string[]);
+        } else if (args.Length == 2 && args[1] is bool) {
+            //Console.WriteLine("Trying to raise error with msgArgs and fatal...");
+            result = Raise((int) error, args[0] as string[], args[1] as bool?);
+            return true;
         } else if (args.Length == 2 && args[1] is string) {
-            Console.WriteLine("Trying to raise error with msgArgs and file...");
+            //Console.WriteLine("Trying to raise error with msgArgs and file...");
             result = Raise((int) error, args[0] as string[], args[1] as string);
             return true;
         } else if (args.Length == 5 && args[1] is string && args[2] is int && args[3] is int && args[4] is int) {
-            Console.WriteLine("Trying to raise error with msgArgs, file, line, start, and end...");
+            //Console.WriteLine("Trying to raise error with msgArgs, file, line, start, and end...");
             result = Raise((int) error, args[0] as string[], args[1] as string, args[2] as int?, args[3] as int?, args[4] as int?);
             return true;
+        } else if (args.Length == 6 && args[1] is string && args[2] is int && args[3] is int && args[4] is int && args[5] is bool) {
+            //Console.WriteLine("Trying to raise error with msgArgs, file, line, start, end, and fatal...");
+            result = Raise((int) error, args[0] as string[], args[1] as string, args[2] as int?, args[3] as int?, args[4] as int?, args[5] as bool?);
+            return true;
+        } else if (args.Length == 2 && args[1] is Lexer.Token) {
+            //Console.WriteLine("Trying to raise error with msgArgs and token...");
+            result = Raise((int) error, args[0] as string[], args[1] as Lexer.Token);
+            return true;
+        } else if (args.Length == 3 && args[2] is bool) {
+            //Console.WriteLine("Trying to raise error with msgArgs, token, and fatal...");
+            result = Raise((int) error, args[0] as string[], args[1] as Lexer.Token, args[2] as bool?);
+            return true;
+        } else {
+            throw new ArgumentException("Provided arguments do not match any overload of Raise");
         }
 
         /* List<object?[]> overloadOptions = [
@@ -219,8 +237,8 @@ class Errors(Dictionary<string, string> files) : DynamicObject {
         return true;
     }
 
-    private int Raise(int errorCode, string[]? msgArgs = null, string? file = null, int? line = null, int? start = null, int? end = null, bool? fatal = true) {
-        Console.WriteLine("Raise called with values:");
+    public int Raise(int errorCode, string[]? msgArgs = null, string? file = null, int? line = null, int? start = null, int? end = null, bool? fatal = true) {
+        /* Console.WriteLine("Raise called with values:");
         Console.WriteLine($"errorCode: {errorCode}");
         Console.Write($"msgArgs: [");
         Array.ForEach(msgArgs?[..^1] ?? [], s => Console.Write($"'{s}', "));
@@ -229,7 +247,7 @@ class Errors(Dictionary<string, string> files) : DynamicObject {
         Console.WriteLine($"line: {line}");
         Console.WriteLine($"start: {start}");
         Console.WriteLine($"end: {end}");
-        Console.WriteLine($"fatal: {fatal}");
+        Console.WriteLine($"fatal: {fatal}"); */
 
         string? sample = null;
         if (file is not null) {
@@ -301,15 +319,15 @@ class Errors(Dictionary<string, string> files) : DynamicObject {
         return errorCode;
     }
 
-    private int Raise(int errorCode, string[]? msgArgs, Lexer.Token? token, bool? fatal = true) {
+    public int Raise(int errorCode, string[]? msgArgs, Lexer.Token? token, bool? fatal = true) {
         return Raise(errorCode, msgArgs, token?.file, token?.line, token?.start, token?.end, fatal);
     }
 
-    private int Raise(int errorCode, string[]? msgArgs, bool? fatal) {
+    public int Raise(int errorCode, string[]? msgArgs, bool? fatal) {
         return Raise(errorCode, msgArgs, null, null, null, null, fatal);
     }
 
-    private int Raise(int errorCode, bool? fatal) {
+    public int Raise(int errorCode, bool? fatal) {
         return Raise(errorCode, null, null, null, null, null, fatal);
     }
 }
