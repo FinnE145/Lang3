@@ -32,11 +32,18 @@ class Errors(Dictionary<string, string> files) {
 
         int errorCode = (int) errorType;
 
+        /* foreach (string f in files.Keys) {
+            Console.WriteLine($"{f}: {files[f]}");
+        } */
+
         string? sample = null;
         if (file is not null) {
             files.TryGetValue(file, out sample);
         }
+        //Console.WriteLine($"sampleSplit: [{string.Join(", ", sample?.Split('\n') ?? [])}]");
+        //Console.WriteLine($"line: {line}");
         sample = line is not null ? sample?.Split('\n')[(int) line] : sample;
+        //Console.WriteLine($"sample: {sample}");
 
         string[] str;
         int msgOverload = 0;
@@ -85,7 +92,7 @@ class Errors(Dictionary<string, string> files) {
             }
         }
         Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine($"sample: {sample}");
+        // Console.WriteLine($"sample: {sample}");
         Console.Write(loc);
         if (sample is not null) {
             foreach (string s in sample.Split('\n')) {
@@ -96,7 +103,7 @@ class Errors(Dictionary<string, string> files) {
                     Console.WriteLine(s);
                 }
             }
-            Console.WriteLine(new string(' ', loc.Length + 2) + new string('^', end - start ?? 0));
+            Console.WriteLine(new string(' ', loc.Length + (start ?? 0) + 2) + new string('^', end - start ?? 0));
         }
         Console.ResetColor();
 

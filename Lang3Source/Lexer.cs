@@ -130,7 +130,7 @@ class Lexer(Dictionary<string, string> files) {
     }
 
     public List<Token> Lex(string fp) {
-        int line = 1;
+        int line = 0;
         int ld = 0;
 
         files.TryGetValue(fp, out string? code);
