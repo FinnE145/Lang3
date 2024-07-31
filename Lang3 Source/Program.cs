@@ -8,10 +8,15 @@ class Lang3Runner {
     public static void Main(string[] args) {
         Dictionary<string, string> files = [];
         dynamic err = new Errors(files);
+        ErrorsStatic errS = new(files);
 
         Stopwatch sw = new();
         sw.Start();
-        err.MalformedTokenError("test", false);
+        err.MalformedTokenError("This uses a dynamic object", false);
+        sw.Stop();
+        Console.WriteLine($"Time: {sw.ElapsedMilliseconds}");
+        sw.Restart();
+        errS.Raise(4, ["This doesnt"], null, null, null, null, false);
         sw.Stop();
         Console.WriteLine($"Time: {sw.ElapsedMilliseconds}");
         try {
