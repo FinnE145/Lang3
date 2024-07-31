@@ -13,7 +13,7 @@ class Errors(Dictionary<string, string> files) {
         MalformedTokenError,    // 4
     }
     private readonly List<List<string>> messageTemplates = [
-        ["{0}"],                        // 0 - None
+        ["{0}", ""],                    // 0 - None
         ["An error occurred."],         // 1 - Error
         ["`{0}` could not be {1}."],    // 2 - IOError
         ["An error occurred inside the compiler:\n{0}"],    // 3 - InternalError
@@ -21,16 +21,14 @@ class Errors(Dictionary<string, string> files) {
     ];
 
     private int RaiseMain(ErrorNames errorType, string[]? msgArgs, string? file, int? line, int? start, int? end, bool? fatal) {
-        /* Console.WriteLine("Raise called with values:");
-        Console.WriteLine($"errorCode: {errorCode}");
-        Console.Write($"msgArgs: [");
-        Array.ForEach(msgArgs?[..^1] ?? [], s => Console.Write($"'{s}', "));
-        Console.WriteLine($"{msgArgs?[^1]}]");
-        Console.WriteLine($"file: {file}");
-        Console.WriteLine($"line: {line}");
-        Console.WriteLine($"start: {start}");
-        Console.WriteLine($"end: {end}");
-        Console.WriteLine($"fatal: {fatal}"); */
+        // Console.WriteLine("Raise called with values:");
+        // Console.WriteLine($"errorCode: {errorCode}");
+        // Console.WriteLine($"msgArgs: [{(msgArgs is not null && msgArgs.Length > 0 ? string.Join(", ", msgArgs) : "")}]");/*
+        // Console.WriteLine($"file: {file}");
+        // Console.WriteLine($"line: {line}");
+        // Console.WriteLine($"start: {start}");
+        // Console.WriteLine($"end: {end}");
+        // Console.WriteLine($"fatal: {fatal}"); */
 
         int errorCode = (int) errorType;
 
@@ -42,17 +40,20 @@ class Errors(Dictionary<string, string> files) {
 
         string[] str;
         int msgOverload = 0;
-        try {
-            while (true) {
-                try {
-                    str = string.Format(messageTemplates[errorCode][msgOverload], msgArgs ?? []).Split('`');
-                    break;
-                } catch (FormatException) {
-                    msgOverload++;
-                }
+        while (true) {
+            try {
+                string str1 = string.Format(messageTemplates[errorCode][msgOverload], msgArgs ?? []);
+                //Console.WriteLine($"msg: {str1}");
+                str = str1.Split('`');
+                break;
+            } catch (FormatException) {
+                msgOverload++;
+                //Console.WriteLine($"moving to next overload (format): {msgOverload}");
             }
-        } catch (IndexOutOfRangeException) {
-            throw new ArgumentException("Message arguments do not match the template for that error.");
+
+            if (msgOverload >= messageTemplates[errorCode].Count) {
+                throw new IndexOutOfRangeException("Message arguments do not match the template for that error.");
+            }
         }
 
         Console.ForegroundColor = ConsoleColor.Red;
@@ -78,16 +79,17 @@ class Errors(Dictionary<string, string> files) {
                 if (start is not null) {
                     loc += $":{start}";
                     if (end is not null) {
-                        loc = $"-{end}";
+                        loc += $"-{end}";
                     }
                 }
             }
         }
         Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine($"sample: {sample}");
         Console.Write(loc);
         if (sample is not null) {
             foreach (string s in sample.Split('\n')) {
-                if (s != "" && s is not null) {
+                if (s != "") {
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.Write($"> ");
                     Console.ResetColor();

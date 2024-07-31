@@ -39,9 +39,31 @@ class Lang3Runner {
 
             files.Add(fp, code);
 
+            /* Lexer.Token t = new("test", "test", 0, 0, 1, fp);
+
+            err.Raise(Success, ["Ex loc"], fp, 0, 0, 1, false);
+            err.Raise(Success, "Ex loc", fp, 0, 0, 1, false);
+            err.Raise(Success, fp, 0, 0, 1, false);
+
+            err.Raise(Success, ["Line"], fp, 0, false);
+            err.Raise(Success, "Line", fp, 0, false);
+            err.Raise(Success, fp, 0, false);
+
+            err.Raise(Success, ["File"], fp, false);
+            err.Raise(Success, "File", fp, false);
+            //err.Raise(Success, fp, false);
+
+            err.Raise(Success, ["Token"], t, false);
+            err.Raise(Success, "Token", t, false);
+            err.Raise(Success, t, false);
+
+            err.Raise(Success, ["Arg"], false);
+            err.Raise(Success, "Arg", false);
+            err.Raise(Success, false); */
+
             Lexer lexer = new(files);
             List<Lexer.Token> tokens = lexer.Lex(fp);
-        } catch (Exception e) {
+        } catch (NotImplementedException e) {
             err.Raise(InternalError, e.Message);
         }
     }
