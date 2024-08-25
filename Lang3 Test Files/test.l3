@@ -1,3 +1,3 @@
-some text
-abc 0.0.1 defg
-some more text
+int num = 0.0.1 + 2
+res f = IO.open("nonexistantFile.txt", write)
+IO.out(num, f)

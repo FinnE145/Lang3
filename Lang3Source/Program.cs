@@ -6,6 +6,30 @@ using static Lang3.Utils.Errors.ErrorNames;
 namespace Lang3;
 
 class Lang3Runner {
+    private static void TestErrors(Errors err, string fp) {
+        Lexer.Token t = new("test", "test", 1, 0, 1, fp);
+
+        err.Raise(Success, ["Ex loc"], fp, 1, 0, 1, false);
+        err.Raise(Success, "Ex loc", fp, 1, 0, 1, false);
+        err.Raise(Success, fp, 1, 0, 1, false);
+
+        err.Raise(Success, ["Line"], fp, 0, false);
+        err.Raise(Success, "Line", fp, 0, false);
+        err.Raise(Success, fp, 0, false);
+
+        err.Raise(Success, ["File"], fp, false);
+        err.Raise(Success, "File", fp, false);
+        //err.Raise(Success, fp, false);
+
+        err.Raise(Success, ["Token"], t, false);
+        err.Raise(Success, "Token", t, false);
+        err.Raise(Success, t, false);
+
+        err.Raise(Success, ["Arg"], false);
+        err.Raise(Success, "Arg", false);
+        err.Raise(Success, false);
+    }
+
     public static void Main(string[] args) {
         Dictionary<string, string> files = [];
 
@@ -39,27 +63,10 @@ class Lang3Runner {
 
             files.Add(fp, code);
 
-            Lexer.Token t = new("test", "test", 1, 0, 1, fp);
+            //TestErrors(err, fp);
 
-            err.Raise(Success, ["Ex loc"], fp, 1, 0, 1, false);
-            err.Raise(Success, "Ex loc", fp, 1, 0, 1, false);
-            err.Raise(Success, fp, 1, 0, 1, false);
-
-            err.Raise(Success, ["Line"], fp, 0, false);
-            err.Raise(Success, "Line", fp, 0, false);
-            err.Raise(Success, fp, 0, false);
-
-            err.Raise(Success, ["File"], fp, false);
-            err.Raise(Success, "File", fp, false);
-            //err.Raise(Success, fp, false);
-
-            err.Raise(Success, ["Token"], t, false);
-            err.Raise(Success, "Token", t, false);
-            err.Raise(Success, t, false);
-
-            err.Raise(Success, ["Arg"], false);
-            err.Raise(Success, "Arg", false);
-            err.Raise(Success, false);
+            // err.Raise(IOError, ["nonexistantFile.txt", "found"], false);
+            // Console.WriteLine();
 
             Lexer lexer = new(files);
             List<Lexer.Token> tokens = lexer.Lex(fp);

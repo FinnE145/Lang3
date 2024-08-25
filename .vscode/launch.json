@@ -8,7 +8,7 @@
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/Lang3 Source/bin/Debug/net8.0/Lang3 Source.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/Lang3 Source",
+            "cwd": "${workspaceFolder}/Lang3Source",
         },
         {
             "name": "Test Debug",
@@ -17,7 +17,7 @@
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/Test/bin/Debug/net8.0/Test.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/Lang3 Source",
+            "cwd": "${workspaceFolder}/Lang3Source",
         }
     ]
 }

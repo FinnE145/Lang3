@@ -93,13 +93,13 @@ class Lexer(Dictionary<string, string> files) {
         while (i-- < code.Length && (char.IsDigit(code[++i]) || code[i] == '.')) {
             if (code[i++] == '.') {
                 if (t == "dec") {
-                    err.Raise(MalformedTokenError, "Number cannot have two decimal points", fp, line, start-ld, i-ld+1);
+                    err.Raise(MalformedTokenError, "Numbers must have one decimal point", fp, line, start-ld, i-ld+1);
                 }
                 t = "dec";
             }
         }
         if (code[--i] == '.') {
-            err.Raise(MalformedTokenError, "Number cannot end with a decimal point", fp, line, start-ld, i-ld+1);
+            err.Raise(MalformedTokenError, "Numbers cannot end with a decimal point", fp, line, start-ld, i-ld+1);
         }
         return new Token(t, code[start..(i+1)], line, start-ld, i-ld+1, fp);
     }
