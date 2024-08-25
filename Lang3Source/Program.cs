@@ -1,5 +1,6 @@
-﻿using System.Diagnostics;
-using System.Reflection.Metadata.Ecma335;
+﻿// dotnet run --project Lang3Source/Lang3Source.csproj --os win
+// dotnet publish Lang3Source/Lang3Source.csproj
+
 using Lang3.Utils;
 using static Lang3.Utils.Errors.ErrorNames;
 
@@ -70,6 +71,9 @@ class Lang3Runner {
 
             Lexer lexer = new(files);
             List<Lexer.Token> tokens = lexer.Lex(fp);
+            foreach (Lexer.Token token in tokens) {
+                Console.WriteLine(token.ToString(false, false));
+            }
         } catch (NotImplementedException e) {
             err.Raise(InternalError, e.Message);
         }

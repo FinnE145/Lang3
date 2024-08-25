@@ -13,7 +13,15 @@ class Lexer(Dictionary<string, string> files) {
         public string file = file;
 
         public override string ToString() {
-            return $"Token({type}, {value}, {line}, {start}, {end}, {file})";
+            return $"Token({type}, '{value}', {line}, {start}, {end}, {file})";
+        }
+
+        public string ToString(bool showFile) {
+            return $"Token({type}, '{value}', {line}, {start}, {end}" + (showFile ? $", {file})" : ")");
+        }
+
+        public string ToString(bool showLocation, bool showFile) {
+            return $"Token({type}, '{value}'" + (showLocation ? $", {start}, {end}" : "") + (showFile ? $", {file})" : ")");
         }
     }
 
