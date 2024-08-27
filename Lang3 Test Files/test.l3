@@ -1,3 +1,0 @@
-int num = 0.1 + 2
-res f = IO.open("nonexistantFile.txt", write)
-IO.out(num, f)
