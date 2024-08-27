@@ -3,7 +3,7 @@ using static Lang3.Utils.Errors.ErrorNames;
 
 namespace Lang3;
 
-class Lexer(Dictionary<string, string> files) {
+class Lexer(Dictionary<string, string> fileCode) {
     public class Token(string type, string value, int line, int start, int end, string file) {
         public string type = type;
         public string value = value;
@@ -25,9 +25,7 @@ class Lexer(Dictionary<string, string> files) {
         }
     }
 
-    readonly Dictionary<string, string> files = files;
-
-    readonly Errors err = new(files);
+    readonly Errors err = new(fileCode);
 
     private readonly Dictionary<string, string> keywords = new() {
         {"if", "if"},
@@ -95,7 +93,7 @@ class Lexer(Dictionary<string, string> files) {
     internal static readonly char[] opStarts = ['+', '-', '*', '/', '%', '>', '<', '=', '&', '|', '^', '!'];
 
     private Token BucketNum(int line, int ld, string fp, ref int i) {
-        string code = files[fp]!;
+        string code = fileCode[fp]!;
         int start = i++;
         string t = "int";
         while (i-- < code.Length && (char.IsDigit(code[++i]) || code[i] == '.')) {
@@ -113,7 +111,7 @@ class Lexer(Dictionary<string, string> files) {
     }
 
     private Token BucketOp(int line, int ld, string fp, ref int i) {
-        string code = files[fp]!;
+        string code = fileCode[fp]!;
         int start = i++;
         while (i < code.Length && opers.ContainsKey(code[start..(i+1)])) {
             i++;
@@ -123,12 +121,12 @@ class Lexer(Dictionary<string, string> files) {
     }
 
     private Token BucketBracket(int line, int ld, string fp, ref int i) {
-        string code = files[fp]!;
+        string code = fileCode[fp]!;
         return new Token(brackets[code[i].ToString()], code[i].ToString(), line, i-ld, i-ld+1, fp);
     }
 
     private Token BucketWord(int line, int ld, string fp, ref int i) {
-        string code = files[fp]!;
+        string code = fileCode[fp]!;
         int start = i++;
         while (i < code.Length && (char.IsLetter(code[i]) || char.IsDigit(code[i]) || code[i] == '_')) {
             i++;
@@ -141,7 +139,7 @@ class Lexer(Dictionary<string, string> files) {
         int line = 0;
         int ld = 0;
 
-        files.TryGetValue(fp, out string? code);
+        fileCode.TryGetValue(fp, out string? code);
         if (code is null) {
             throw new FileNotFoundException($"Tried to lex {fp} but it doesn't exist.");
         }

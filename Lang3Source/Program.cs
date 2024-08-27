@@ -32,9 +32,9 @@ class Lang3Runner {
     }
 
     public static void Main(string[] args) {
-        Dictionary<string, string> files = [];
+        Dictionary<string, string> fileCode = [];
 
-        Errors err = new(files);
+        Errors err = new(fileCode);
 
         try {
             string fp;
@@ -62,18 +62,24 @@ class Lang3Runner {
                 //throw new Exception($"Couldn't read file {fp}");
             }
 
-            files.Add(fp, code);
+            fileCode.Add(fp, code);
 
             //TestErrors(err, fp);
 
             // err.Raise(IOError, ["nonexistantFile.txt", "found"], false);
             // Console.WriteLine();
 
-            Lexer lexer = new(files);
+            Lexer lexer = new(fileCode);
             List<Lexer.Token> tokens = lexer.Lex(fp);
             foreach (Lexer.Token token in tokens) {
-                Console.WriteLine(token.ToString(false, false));
+                Console.WriteLine(token.ToString(/* false, false */));
             }
+
+            Dictionary<string, List<Lexer.Token>> fileTokens = new() {
+                [fp] = tokens
+            };
+
+
         } catch (NotImplementedException e) {
             err.Raise(InternalError, e.Message);
         }
