@@ -32,6 +32,12 @@ class Lang3Runner {
     }
 
     public static void Main(string[] args) {
+
+        bool debug = args.Contains("--debug") || args.Contains("-d");
+        bool verbose = args.Contains("--verbose") || args.Contains("-v");
+        bool showTokens = args.Contains("--tokens") || args.Contains("-t");
+        bool showAST = args.Contains("--ast") || args.Contains("-a");
+
         Dictionary<string, string> fileCode = [];
 
         Errors err = new(fileCode);
@@ -71,14 +77,24 @@ class Lang3Runner {
 
             Lexer lexer = new(fileCode);
             List<Lexer.Token> tokens = lexer.Lex(fp);
-            foreach (Lexer.Token token in tokens) {
-                Console.WriteLine(token.ToString(/* false, false */));
+
+            if (showTokens || debug) {
+                foreach (Lexer.Token token in tokens) {
+                    Console.WriteLine(token.ToString(verbose, verbose));
+                }
+                Console.WriteLine();
             }
 
             Dictionary<string, List<Lexer.Token>> fileTokens = new() {
                 [fp] = tokens
             };
 
+            Parser parser = new(fileCode, fileTokens);
+            Parser.Node ast = parser.Parse(fp);
+
+            if (showAST || debug) {
+                Console.WriteLine(ast.ToString(verbose));
+            }
 
         } catch (NotImplementedException e) {
             err.Raise(InternalError, e.Message);
