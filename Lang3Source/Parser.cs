@@ -1,13 +1,26 @@
+using System.Security.Claims;
 using Lang3.Utils;
 
 namespace Lang3;
 
 class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.Token>> fileTokens) {
-    public class Node(string type, string value, Lexer.Token token) {
-        public string type = type;
-        public string value = value;
+    public class Node {
+        public string type;
+        public string value;
         public List<Node> children = [];
-        public Lexer.Token token = token;
+        public Lexer.Token token;
+
+        public Node (string type, string value, Lexer.Token token) {
+            this.type = type;
+            this.value = value;
+            this.token = token;
+        }
+
+        public Node() {
+            type = "";
+            value = "";
+            token = new("", "", 0, 0, 0, "");
+        }
 
         private readonly int depthMod = 4;
 
@@ -50,10 +63,54 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
         }
     }
 
-    private readonly List<string> unaryStart = ["inc", "dec", "bNot", "not", "sub"];
+    private readonly List<string> unaryStart = ["inc", "dec", "bNot", "not"];
     private readonly List<string> unaryEnd = ["inc", "dec"];
 
     readonly Errors err = new(fileCode);
+
+    private static readonly List<string> valueTypes = ["number", "parens", "operator"];
+
+    private static readonly Dictionary<string, int> precedence = new() {
+        {"add", 1},
+        {"sub", 1},
+        {"mul", 2},
+        {"div", 2},
+        {"exp", 3},
+        {"root", 3},
+        {"iDiv", 2},
+        {"mod", 2},
+        {"gt", 0},
+        {"lt", 0},
+        {"gte", 0},
+        {"lte", 0},
+        {"eq", 0},
+        {"neq", 0},
+        {"and", -2},
+        {"or", -2},
+        {"bAnd", 1},
+        {"bOr", 1},
+        {"xor", 1},
+        {"lShift", 2},
+        {"rShift", 2},
+        {"assign", -5},
+        {"addAssign", -5},
+        {"subAssign", -5},
+        {"mulAssign", -5},
+        {"divAssign", -5},
+        {"expAssign", -5},
+        {"rootAssign", -5},
+        {"iDivAssign", -5},
+        {"modAssign", -5},
+        {"bAndAssign", -5},
+        {"bOrAssign", -5},
+        {"xorAssign", -5},
+        {"lShiftAssign", -5},
+        {"rShiftAssign", -5},
+        {"inc", 4},
+        {"dec", 4},
+        {"bNot", 4},
+        {"not", 4}
+    };
 
     private void ParseParens(List<Lexer.Token> tokens, Node root, ref int i) {
         Node node = new("parens", "", tokens[i]);
@@ -69,7 +126,7 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
         }
     }
 
-    private void ParseUnaryOps(List<Lexer.Token> tokens, Node root, ref int i) {
+    private void ParsePreUnaryOps(List<Lexer.Token> tokens, Node root, ref int i) {
         Node unary = new("operation", tokens[i].value, tokens[i]);
         root.children.Add(unary);
         i++;
@@ -78,6 +135,14 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
             err.Raise(Errors.ErrorNames.Error, "Expected expression after unary operator", tokens[i], false);
             i++;
         }
+    }
+
+    private void ParsePostUnaryOps(List<Lexer.Token> tokens, Node root, ref int i) {
+        Node unary = new("operation", tokens[i].value, tokens[i]);
+        unary.children.Add(root.children[^1]);
+        root.children.RemoveAt(root.children.Count - 1);
+        root.children.Add(unary);
+        i++;
     }
 
     public Node Parse(string fp) {
@@ -106,12 +171,17 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
             } else if (t.type == "lParen") {
                 ParseParens(tokens, node, ref i);
             } else if (t.type == "operator") {
-                if (unaryStart.Contains(t.value)) {
-                    ParseUnaryOps(tokens, node, ref i);
-                } else if (unaryEnd.Contains(t.value)) {
-                    throw new NotImplementedException("Following unary operators not implemented yet");
+                if (unaryStart.Contains(t.value) && !unaryEnd.Contains(t.value)) {
+                    Console.WriteLine($"{t.ToString(false)} is start and not end");
+                    ParsePreUnaryOps(tokens, node, ref i);
+                } else if (!unaryStart.Contains(t.value) && unaryEnd.Contains(t.value)) {
+                    Console.WriteLine($"{t.ToString(false)} is end and not start");
+                    ParsePostUnaryOps(tokens, node, ref i);
+                } else if (unaryStart.Contains(t.value) && unaryEnd.Contains(t.value)) {
+                    Console.WriteLine($"{t.ToString(false)} is start and end");
+                    err.Raise(Errors.ErrorNames.InternalError, "Ambiguous unary operators not implemented yet", t, false);
                 } else {
-                    throw new NotImplementedException("Binary operators not implemented yet");
+                    err.Raise(Errors.ErrorNames.InternalError, "Binary operators not implemented yet", t, false);
                 }
             } else {
                 err.Raise(Errors.ErrorNames.InternalError, "Unexpected token", t, false);
