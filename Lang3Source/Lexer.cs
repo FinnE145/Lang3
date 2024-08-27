@@ -79,6 +79,8 @@ class Lexer(Dictionary<string, string> fileCode) {
         {"!", "not"}
     };
 
+    
+
     private readonly Dictionary<string, string> brackets = new() {
         {"(", "lParen"},
         {")", "rParen"},
@@ -90,7 +92,7 @@ class Lexer(Dictionary<string, string> fileCode) {
         {";", "rCode"}
     };
 
-    internal static readonly char[] opStarts = ['+', '-', '*', '/', '%', '>', '<', '=', '&', '|', '^', '!'];
+    internal static readonly List<char> opStarts = [];
 
     private Token BucketNum(int line, int ld, string fp, ref int i) {
         string code = fileCode[fp]!;
@@ -117,7 +119,7 @@ class Lexer(Dictionary<string, string> fileCode) {
             i++;
         }
         string sample = code[start..(--i+1)];
-        return new Token(sample == "++" || sample == "--" || sample == "!" ? "uOperator" : "operator", opers[sample], line, start-ld, i-ld+1, fp);
+        return new Token("operator", opers[sample], line, start-ld, i-ld+1, fp);
     }
 
     private Token BucketBracket(int line, int ld, string fp, ref int i) {
@@ -136,6 +138,10 @@ class Lexer(Dictionary<string, string> fileCode) {
     }
 
     public List<Token> Lex(string fp) {
+        foreach (string op in opers.Keys) {
+            opStarts.Add(op[0]);
+        }
+
         int line = 0;
         int ld = 0;
 
