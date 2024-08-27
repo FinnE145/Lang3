@@ -50,6 +50,9 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
         }
     }
 
+    private readonly List<string> unaryStart = ["inc", "dec", "bNot", "not", "sub"];
+    private readonly List<string> unaryEnd = ["inc", "dec"];
+
     readonly Errors err = new(fileCode);
 
     private void ParseParens(List<Lexer.Token> tokens, Node root, ref int i) {
@@ -66,6 +69,17 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
         }
     }
 
+    private void ParseUnaryOps(List<Lexer.Token> tokens, Node root, ref int i) {
+        Node unary = new("operation", tokens[i].value, tokens[i]);
+        root.children.Add(unary);
+        i++;
+        if (!Parse(tokens, unary, ref i, maxTokens: 1)) {
+            // TODO: add a new error type for this
+            err.Raise(Errors.ErrorNames.Error, "Expected expression after unary operator", tokens[i], false);
+            i++;
+        }
+    }
+
     public Node Parse(string fp) {
         List<Lexer.Token> tokens = fileTokens[fp];
 
@@ -75,13 +89,14 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
         return root;
     }
 
-    private bool Parse(List<Lexer.Token> tokens, Node node, ref int i, string endType = "<NOT_A_TYPE>") {
+    private bool Parse(List<Lexer.Token> tokens, Node node, ref int i, string endType = "<NOT_A_TYPE>", int maxTokens = -1) {
         List<int> lastIs = [];
+        int startI = i;
 
         while (i < tokens.Count) {
             Lexer.Token t = tokens[i];
 
-            if (t.type == endType) {
+            if (t.type == endType || (maxTokens != -1 && i - startI >= maxTokens)) {
                 return true;
             } else if (t.type == "EOF") {
                 return false;
@@ -91,7 +106,13 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
             } else if (t.type == "lParen") {
                 ParseParens(tokens, node, ref i);
             } else if (t.type == "operator") {
-                throw new NotImplementedException();
+                if (unaryStart.Contains(t.value)) {
+                    ParseUnaryOps(tokens, node, ref i);
+                } else if (unaryEnd.Contains(t.value)) {
+                    throw new NotImplementedException("Following unary operators not implemented yet");
+                } else {
+                    throw new NotImplementedException("Binary operators not implemented yet");
+                }
             } else {
                 err.Raise(Errors.ErrorNames.InternalError, "Unexpected token", t, false);
                 i++;
