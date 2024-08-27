@@ -76,6 +76,8 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
     }
 
     private bool Parse(List<Lexer.Token> tokens, Node node, ref int i, string endType = "<NOT_A_TYPE>") {
+        List<int> lastIs = [];
+
         while (i < tokens.Count) {
             Lexer.Token t = tokens[i];
 
@@ -83,8 +85,8 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
                 return true;
             } else if (t.type == "EOF") {
                 return false;
-            } else if (t.type == "int" || t.type == "float" || t.type == "string") {
-                node.children.Add(new("value", t.value, t));
+            } else if (t.type == "int" || t.type == "dec") {
+                node.children.Add(new("number", t.value, t));
                 i++;
             } else if (t.type == "lParen") {
                 ParseParens(tokens, node, ref i);
@@ -93,6 +95,15 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
             } else {
                 err.Raise(Errors.ErrorNames.InternalError, "Unexpected token", t, false);
                 i++;
+            }
+
+            if (lastIs.Count == 3 && lastIs[0] == lastIs[1] && lastIs[1] == lastIs[2] && lastIs[2] == i) {
+                throw new Exception("Last 3 i's have been the same");
+            } else if (lastIs.Count == 3) {
+                lastIs.RemoveAt(0);
+                lastIs.Add(i);
+            } else {
+                lastIs.Add(i);
             }
         }
 
