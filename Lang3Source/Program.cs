@@ -33,10 +33,10 @@ class Lang3Runner {
 
     public static void Main(string[] args) {
 
-        bool debug = args.Contains("--debug") || args.Contains("-d");
-        bool verbose = args.Contains("--verbose") || args.Contains("-v");
-        bool showTokens = args.Contains("--tokens") || args.Contains("-t");
-        bool showAST = args.Contains("--ast") || args.Contains("-a");
+        bool debug = args.Contains("!debug") || args.Contains("!d");
+        bool verbose = args.Contains("!verbose") || args.Contains("!v");
+        bool showTokens = args.Contains("!tokens") || args.Contains("!t");
+        bool showAST = args.Contains("!ast") || args.Contains("!a");
 
         Dictionary<string, string> fileCode = [];
 
@@ -94,6 +94,7 @@ class Lang3Runner {
 
             if (showAST || debug) {
                 Console.WriteLine(ast.ToString(verbose));
+                Console.WriteLine();
             }
 
         } catch (NotImplementedException e) {
