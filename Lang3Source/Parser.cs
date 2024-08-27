@@ -9,36 +9,44 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
         public List<Node> children = [];
         public Lexer.Token token = token;
 
+        private readonly int depthMod = 4;
+
         private string ChildrenToString() {
             return ChildrenToString(true);
         }
 
-        private string ChildrenToString(bool showToken) {
-            string s = "[\n";
-            foreach (Node child in children) {
-                s += $"  {child.ToString(showToken)}\n";
+        private string ChildrenToString(bool showToken, int depth = 2) {
+            if (children.Count == 0) {
+                return "";
             }
-            return $"{s}]";
+            string s = ", [\n";
+            foreach (Node child in children) {
+                s += $"{child.ToString(showToken, depth + depthMod)}, \n";
+            }
+            return $"{s[..^3] + '\n'}{new string(' ', depth)}]";
         }
 
-        private string ChildrenToString(bool showLocation, bool showFile) {
-            string s = "[\n";
-            foreach (Node child in children) {
-                s += $"  {child.ToString(showLocation, showFile)}\n";
+        private string ChildrenToString(bool showLocation, bool showFile, int depth = 2) {
+            if (children.Count == 0) {
+                return "";
             }
-            return $"{s}]";
+            string s = ", [\n";
+            foreach (Node child in children) {
+                s += $"  {child.ToString(showLocation, showFile, depth + depthMod)}, \n";
+            }
+            return $"{s[..^3] + '\n'}{new string(' ', depth)}]";
         }
 
         public override string ToString() {
             return $"Node({type}, '{value}', {ChildrenToString()}, {token})";
         }
 
-        public string ToString(bool showToken) {
-            return $"Node({type}, '{value}', {ChildrenToString(showToken)}{(showToken ? $", token.ToString()" : "")})";
+        public string ToString(bool showToken, int depth = 0) {
+            return $"{new string(' ', depth)}Node({type}{(value != "" ? ", " + value : "")}{ChildrenToString(showToken, depth)}{(showToken ? $", token.ToString()" : "")})";
         }
 
-        public string ToString(bool showLocation, bool showFile) {
-            return $"Node({type}, '{value}'{ChildrenToString(showLocation, showFile)}, {token.ToString(showLocation, showFile)})";
+        public string ToString(bool showLocation, bool showFile, int depth = 0) {
+            return $"{new string(' ', depth)}Node({type}{(value != "" ? ", " + value : "")}{ChildrenToString(showLocation, showFile, depth)}, {token.ToString(showLocation, showFile)})";
         }
     }
 
@@ -59,7 +67,6 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
     }
 
     public Node Parse(string fp) {
-
         List<Lexer.Token> tokens = fileTokens[fp];
 
         Node root = new("root", "", new("", "", 0, 0, 0, fp));
@@ -84,8 +91,7 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
             } else if (t.type == "operator") {
                 throw new NotImplementedException();
             } else {
-                // TODO: add a new error type for this
-                err.Raise(Errors.ErrorNames.Error, "Unexpected token", t, false);
+                err.Raise(Errors.ErrorNames.InternalError, "Unexpected token", t, false);
                 i++;
             }
         }
