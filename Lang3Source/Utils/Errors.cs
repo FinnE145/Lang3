@@ -13,8 +13,8 @@ class Errors(Dictionary<string, string> files) {
         MalformedTokenError,    // 4
     }
     private readonly List<List<string>> messageTemplates = [
-        ["{0}", ""],                    // 0 - None
-        ["An error occurred."],         // 1 - Error
+        ["{0}", ""],                    // 0 - Success
+        ["{0}", "An error occurred."],  // 1 - Error
         ["`{0}` could not be {1}."],    // 2 - IOError
         ["An error occurred inside the compiler:\n{0}"],    // 3 - InternalError
         ["{0}"],                        // 4 - MalformedTokenError
