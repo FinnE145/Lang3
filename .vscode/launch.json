@@ -6,9 +6,10 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/Lang3 Source/bin/Debug/net8.0/Lang3 Source.dll",
-            "args": [],
+            "program": "${workspaceFolder}/CompiledSource/net8.0/win-x64/Lang3Source.dll",
+            "args": ["C:/Users/finne/OneDrive/Documents/0coding/Lang3_Ghub/Lang3TestFiles/test.l3", "-d"],
             "cwd": "${workspaceFolder}/Lang3Source",
+            "justMyCode": false
         },
         {
             "name": "Test Debug",
