@@ -27,7 +27,7 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
             return ChildrenToString(true);
         }
 
-        private string ChildrenToString(bool showToken, int depth = 2) {
+        private string ChildrenToString(bool showToken, int depth = 0) {
             if (children.Count == 0) {
                 return "";
             }
@@ -38,7 +38,7 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
             return $"{s[..^3] + '\n'}{new string(' ', depth)}]";
         }
 
-        private string ChildrenToString(bool showLocation, bool showFile, int depth = 2) {
+        private string ChildrenToString(bool showLocation, bool showFile, int depth = 0) {
             if (children.Count == 0) {
                 return "";
             }
@@ -54,7 +54,7 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
         }
 
         public string ToString(bool showToken, int depth = 0) {
-            return $"{new string(' ', depth)}Node({type}{(value != "" ? ", " + value : "")}{ChildrenToString(showToken, depth)}{(showToken ? $", token.ToString()" : "")})";
+            return $"{new string(' ', depth)}Node({type}{(value != "" ? ", " + value : "")}{ChildrenToString(showToken, depth)}{(showToken ? $", {token}" : "")})";
         }
 
         public string ToString(bool showLocation, bool showFile, int depth = 0) {
@@ -154,6 +154,40 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
         }
     }
 
+    private static bool SwitchArgs(Node op, Node lastOp, Node? root = null) {
+
+        Console.WriteLine("Possibly switching " + lastOp.ToString(false) + " and " + op.ToString(false));
+        bool addNode = true;
+
+        if (lastOp.children.Count == 0 || lastOp.type != "operation") {
+
+            Console.WriteLine("NOT AN OP - " + lastOp.ToString(false) + (lastOp.type != "operator" ? " is a " + lastOp.type : "has no children"));
+
+            op.children.Add(lastOp);
+            root?.children.RemoveAt(root.children.Count - 1);
+        } else if (precedence[op.value] > precedence[lastOp.value]) {
+
+            Console.WriteLine("WRONG ORDER - " + op.value + " is higher precedence than " + lastOp.value);
+
+            if (lastOp.children[^1].children.Count != 0 && lastOp.children[^1].type == "operation" && !ReferenceEquals(lastOp.children[^1], op)) {
+                SwitchArgs(op, lastOp.children[^1], lastOp);
+            } else {
+                op.children.Add(lastOp.children[^1]);
+                lastOp.children.RemoveAt(lastOp.children.Count - 1);
+                lastOp.children.Add(op);
+            }
+
+            addNode = false;
+        } else {
+            Console.WriteLine("RIGHT ORDER - " + op.value + " comes after " + lastOp.value);
+
+            op.children.Add(lastOp);
+            root?.children.RemoveAt(root.children.Count - 1);
+        }
+
+        return addNode;
+    }
+
     private void ParseBinaryOps(List<Lexer.Token> tokens, Node root, ref int i) {
         Node op = new("operation", tokens[i].value, tokens[i]);
         i++;
@@ -161,15 +195,17 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
             // TODO: add a new error type for this
             err.Raise(Errors.ErrorNames.Error, $"Expected an expression before the {tokens[i-1].value} operator, but received {tokens[i-2].type}", tokens[i-2], false);
         } else {
-            op.children.Add(root.children[^1]);
-            root.children.RemoveAt(root.children.Count - 1);
+            bool addNode = SwitchArgs(op, root.children[^1], root);
+
             Node argHolder = new("argHolder", "", new("", "", 0, 0, 0, ""));
             int oldI = i;
             bool parseResult = Parse(tokens, argHolder, ref i, maxTokens: 1);
 
             if (parseResult && argHolder.children.Count != 0 && valueTypes.Contains(argHolder.children[^1].type)) {
                 op.children.Add(argHolder.children[^1]);
-                root.children.Add(op);
+                if (addNode) {
+                    root.children.Add(op);
+                }
             } else {
                 // TODO: add a new error type for this
                 err.Raise(Errors.ErrorNames.Error, $"Expected an expression after the {tokens[oldI-1].value} operator, but received {tokens[oldI].type}", tokens[oldI], false);
