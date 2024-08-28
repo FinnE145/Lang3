@@ -1,13 +1,26 @@
 # Lang3
 A lightweight statically typed OOP scripting language with flexible structures.
 
+> IMPORTANT NOTE: Currently, Lang3 can only parse operators, and does not have an interpreter. This means you can run mathematical operations including variables successfully, and will be able to view lexer and parser output.
+
 > For a thorough introduction to Lang3, and more information on syntax, structures, and other aspects and features of the language, check out the [Documentation Jupyter Notebook](https://github.com/FinnE145/Lang3/blob/main/Docs/Lang3Docs.ipynb). Soon, a website will be linked here with documentation, download options, and a page to write Lang3 code in your browser and run it on our servers.
 
 > Note that Lang3 is a placeholder name, and will be changed at a later date. If you have a name suggestion, submit an [issue](https://github.com/FinnE145/Lang3/issues/new) with the [`enhancement`](https://github.com/FinnE145/Lang3/labels/enhancement) tag.
 
 ## Download
 
-Lang3 is still in the early development stage, and is not available for download yet. You can run Lang3 in your browser at [lang3.fmje.dev/run](https://lang3.fmje.dev/run) to see lexer and parser output. Also feel free to download the repo and compile the C# yourself!
+Lang3 is still in the early development stage, and is not available for download yet. You can run Lang3 in your browser at [lang3.fmje.dev/run](https://lang3.fmje.dev/run) to see lexer and parser output of operators with numbers and variables. Also feel free to download the repo and compile the C# yourself!
+
+## CLI syntax
+
+`Lang3 [filepath] [args]`
+
+*Possible args include:*
+
+`!t`/`!tokens`: Show Tokens (lexer output)\
+`!a`/`!ast`: Show AST (parser output)\
+`!d`/`!debug`: Show both lexer and parser output (same as using `!t` and `!a`)\
+`!v`/`!verbose`: Show more information in lexer and parser output. (Shows filepath and location in lexer output and tokens in parser output)
 
 ## What is Lang3?
 
