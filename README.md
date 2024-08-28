@@ -7,7 +7,7 @@ A lightweight statically typed OOP scripting language with flexible structures.
 
 ## Download
 
-Lang3 is still in the early development stage, and is not available for download yet. Soon, a website will be added here where Lang3 can be run. In the meantime, feel free to download the repo and compile the C# yourself!
+Lang3 is still in the early development stage, and is not available for download yet. You can run Lang3 in your browser at [lang3.fmje.dev/run](https://lang3.fmje.dev/run) to see lexer and parser output. Also feel free to download the repo and compile the C# yourself!
 
 ## What is Lang3?
 
