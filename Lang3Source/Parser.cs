@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Lang3.Utils;
 
 namespace Lang3;
@@ -68,7 +67,7 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
 
     readonly Errors err = new(fileCode);
 
-    private static readonly List<string> valueTypes = ["number", "parens", "operator"];
+    private static readonly List<string> valueTypes = ["number", "parens", "operator", "var"];
 
     private static readonly Dictionary<string, int> precedence = new() {
         {"add", 1},
@@ -119,6 +118,7 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
         i++;
         if (Parse(tokens, node, ref i, "rParen")) {
             i++;
+            Console.WriteLine(i);
             return;
         } else {
             // TODO: add a new error type for this
@@ -127,10 +127,10 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
     }
 
     private void ParsePreUnaryOps(List<Lexer.Token> tokens, Node root, ref int i) {
-        Node unary = new("operation", tokens[i].value, tokens[i]);
-        root.children.Add(unary);
+        Node op = new("operation", tokens[i].value, tokens[i]);
+        root.children.Add(op);
         i++;
-        if (!Parse(tokens, unary, ref i, maxTokens: 1)) {
+        if (!Parse(tokens, op, ref i, maxTokens: 1) || !valueTypes.Contains(op.children[^1].type)) {
             // TODO: add a new error type for this
             err.Raise(Errors.ErrorNames.Error, "Expected expression after unary operator", tokens[i], false);
             i++;
@@ -138,10 +138,10 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
     }
 
     private void ParsePostUnaryOps(List<Lexer.Token> tokens, Node root, ref int i) {
-        Node unary = new("operation", tokens[i].value, tokens[i]);
-        unary.children.Add(root.children[^1]);
+        Node op = new("operation", tokens[i].value, tokens[i]);
+        op.children.Add(root.children[^1]);
         root.children.RemoveAt(root.children.Count - 1);
-        root.children.Add(unary);
+        root.children.Add(op);
         i++;
     }
 
@@ -163,14 +163,29 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
 
             if (t.type == endType || (maxTokens != -1 && i - startI >= maxTokens)) {
                 return true;
-            } else if (t.type == "EOF") {
+            }
+            
+            if (t.type == "EOF") {
                 return false;
-            } else if (t.type == "int" || t.type == "dec") {
+            }
+            
+            if (t.type == "int" || t.type == "dec") {
                 node.children.Add(new("number", t.value, t));
                 i++;
-            } else if (t.type == "lParen") {
+                continue;
+            }
+            
+            if (t.type == "lParen") {
                 ParseParens(tokens, node, ref i);
-            } else if (t.type == "operator") {
+                continue;
+            }
+
+            if (t.type == "rParen") {
+                err.Raise(Errors.ErrorNames.Error, "Unexpected right parenthesis", t, false);
+                return false;
+            }
+            
+            if (t.type == "operator") {
                 if (unaryStart.Contains(t.value) && !unaryEnd.Contains(t.value)) {
                     Console.WriteLine($"{t.ToString(false)} is start and not end");
                     ParsePreUnaryOps(tokens, node, ref i);
@@ -179,14 +194,35 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
                     ParsePostUnaryOps(tokens, node, ref i);
                 } else if (unaryStart.Contains(t.value) && unaryEnd.Contains(t.value)) {
                     Console.WriteLine($"{t.ToString(false)} is start and end");
-                    err.Raise(Errors.ErrorNames.InternalError, "Ambiguous unary operators not implemented yet", t, false);
+
+                    if (node.children.Count > 0 && valueTypes.Contains(node.children[^1].type)) {
+                        ParsePostUnaryOps(tokens, node, ref i);
+                    } else {
+                        ParsePreUnaryOps(tokens, node, ref i);
+                    }
+                    /* } else if (preValue && postValue) {
+                        // TODO: add a new error type for this
+                        err.Raise(Errors.ErrorNames.Error, "Unary operators cannot be both pre and post. Use parentheses to remove ambiguity.", t, false);
+                        i++;
+                    } else {
+                        // TODO: add a new error type for this
+                        err.Raise(Errors.ErrorNames.Error, "Expected expression before or after unary operator", t, false);
+                        i++;
+                    } */
                 } else {
                     err.Raise(Errors.ErrorNames.InternalError, "Binary operators not implemented yet", t, false);
                 }
-            } else {
-                err.Raise(Errors.ErrorNames.InternalError, "Unexpected token", t, false);
-                i++;
+                continue;
             }
+
+            if (t.type == "var") {
+                node.children.Add(new("var", t.value, t));
+                i++;
+                continue;
+            }
+
+            err.Raise(Errors.ErrorNames.InternalError, $"Unexpected token {t.ToString(false)} at {i}", t, false);
+            i++;
 
             if (lastIs.Count == 3 && lastIs[0] == lastIs[1] && lastIs[1] == lastIs[2] && lastIs[2] == i) {
                 throw new Exception("Last 3 i's have been the same");
@@ -196,6 +232,8 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
             } else {
                 lastIs.Add(i);
             }
+
+            return false;
         }
 
         // Ran out of tokens, endType not found
