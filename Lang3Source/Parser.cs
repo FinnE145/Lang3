@@ -120,7 +120,7 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
         i++;
         if (Parse(tokens, node, ref i, "rParen")) {
             i++;
-            Console.WriteLine(i);
+            // Console.WriteLine(i);
             return;
         } else {
             // TODO: add a new error type for this
@@ -156,18 +156,18 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
 
     private static bool SwitchArgs(Node op, Node lastOp, Node? root = null) {
 
-        Console.WriteLine("Possibly switching " + lastOp.ToString(false) + " and " + op.ToString(false));
+        // Console.WriteLine("Possibly switching " + lastOp.ToString(false) + " and " + op.ToString(false));
         bool addNode = true;
 
         if (lastOp.children.Count == 0 || lastOp.type != "operation") {
 
-            Console.WriteLine("NOT AN OP - " + lastOp.ToString(false) + (lastOp.type != "operator" ? " is a " + lastOp.type : "has no children"));
+            // Console.WriteLine("NOT AN OP - " + lastOp.ToString(false) + (lastOp.type != "operator" ? " is a " + lastOp.type : "has no children"));
 
             op.children.Add(lastOp);
             root?.children.RemoveAt(root.children.Count - 1);
         } else if (precedence[op.value] > precedence[lastOp.value]) {
 
-            Console.WriteLine("WRONG ORDER - " + op.value + " is higher precedence than " + lastOp.value);
+            // Console.WriteLine("WRONG ORDER - " + op.value + " is higher precedence than " + lastOp.value);
 
             if (lastOp.children[^1].children.Count != 0 && lastOp.children[^1].type == "operation" && !ReferenceEquals(lastOp.children[^1], op)) {
                 SwitchArgs(op, lastOp.children[^1], lastOp);
@@ -179,7 +179,7 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
 
             addNode = false;
         } else {
-            Console.WriteLine("RIGHT ORDER - " + op.value + " comes after " + lastOp.value);
+            // Console.WriteLine("RIGHT ORDER - " + op.value + " comes after " + lastOp.value);
 
             op.children.Add(lastOp);
             root?.children.RemoveAt(root.children.Count - 1);
@@ -214,7 +214,6 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
     }
 
     public Node Parse(string fp) {
-        Console.ForegroundColor = ConsoleColor.White;
         List<Lexer.Token> tokens = fileTokens[fp];
 
         Node root = new("root", "", new("", "", 0, 0, 0, fp));
