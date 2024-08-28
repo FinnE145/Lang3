@@ -130,10 +130,11 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
 
     private void ParsePreUnaryOps(List<Lexer.Token> tokens, Node root, ref int i) {
         Node op = new("operation", tokens[i].value, tokens[i]);
+        int oldI = i;
         i++;
         if (!Parse(tokens, op, ref i, maxTokens: 1) || (op.children.Count > 0 && !valueTypes.Contains(op.children[^1].type))) {
             // TODO: add a new error type for this
-            err.Raise(Errors.ErrorNames.Error, $"Expected an expression after the {tokens[i-2].value} operator", tokens[i-1], false);
+            err.Raise(Errors.ErrorNames.Error, $"Expected an expression after the {tokens[oldI].value} operator, but received {tokens[oldI+1].type}", tokens[oldI+1].type == "EOF" ? tokens[oldI] : tokens[oldI+1], false);
             i++;
         } else {
             root.children.Add(op);
@@ -144,13 +145,13 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
         Node op = new("operation", tokens[i].value, tokens[i]);
         if (root.children.Count == 0 || !valueTypes.Contains(root.children[0].type)) {
             // TODO: add a new error type for this
-            err.Raise(Errors.ErrorNames.Error, $"Expected an expression before the {tokens[i].value} operator", tokens[i], false);
+            err.Raise(Errors.ErrorNames.Error, $"Expected an expression before the {tokens[i].value} operator, but received {tokens[i++].type}", tokens[i], false);
         } else {
             op.children.Add(root.children[^1]);
             root.children.RemoveAt(root.children.Count - 1);
             root.children.Add(op);
+            i++;
         }
-        i++;
     }
 
     private void ParseBinaryOps(List<Lexer.Token> tokens, Node root, ref int i) {
@@ -158,11 +159,12 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
         i++;
         if (root.children.Count == 0 || !valueTypes.Contains(root.children[0].type)) {
             // TODO: add a new error type for this
-            err.Raise(Errors.ErrorNames.Error, "Expected an expression before the operator", tokens[i-2], false);
+            err.Raise(Errors.ErrorNames.Error, $"Expected an expression before the {tokens[i-1].value} operator, but received {tokens[i-2].type}", tokens[i-2], false);
         } else {
             op.children.Add(root.children[^1]);
             root.children.RemoveAt(root.children.Count - 1);
             Node argHolder = new("argHolder", "", new("", "", 0, 0, 0, ""));
+            int oldI = i;
             bool parseResult = Parse(tokens, argHolder, ref i, maxTokens: 1);
 
             if (parseResult && argHolder.children.Count != 0 && valueTypes.Contains(argHolder.children[^1].type)) {
@@ -170,7 +172,7 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
                 root.children.Add(op);
             } else {
                 // TODO: add a new error type for this
-                err.Raise(Errors.ErrorNames.Error, "Expected a value after the operator", tokens[i], false);
+                err.Raise(Errors.ErrorNames.Error, $"Expected an expression after the {tokens[oldI-1].value} operator, but received {tokens[oldI].type}", tokens[oldI], false);
             }
         }
     }
@@ -217,13 +219,13 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
             
             if (t.type == "operator") {
                 if (unaryStart.Contains(t.value) && !unaryEnd.Contains(t.value)) {
-                    Console.WriteLine($"{t.ToString(false)} is start and not end");
+                    // Console.WriteLine($"{t.ToString(false)} is start and not end");
                     ParsePreUnaryOps(tokens, node, ref i);
                 } else if (!unaryStart.Contains(t.value) && unaryEnd.Contains(t.value)) {
-                    Console.WriteLine($"{t.ToString(false)} is end and not start");
+                    // Console.WriteLine($"{t.ToString(false)} is end and not start");
                     ParsePostUnaryOps(tokens, node, ref i);
                 } else if (unaryStart.Contains(t.value) && unaryEnd.Contains(t.value)) {
-                    Console.WriteLine($"{t.ToString(false)} is start and end");
+                    // Console.WriteLine($"{t.ToString(false)} is start and end");
 
                     if (node.children.Count > 0 && valueTypes.Contains(node.children[^1].type)) {
                         ParsePostUnaryOps(tokens, node, ref i);
@@ -247,6 +249,16 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
 
             if (t.type == "var") {
                 node.children.Add(new("var", t.value, t));
+                i++;
+                continue;
+            }
+
+            if (t.type == "comma") {
+                i++;
+                continue;
+            }
+
+            if (t.type == "dot") {
                 i++;
                 continue;
             }
