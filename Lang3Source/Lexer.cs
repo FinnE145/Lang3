@@ -165,7 +165,7 @@ class Lexer(Dictionary<string, string> fileCode) {
         for (int i = 0; i < code.Length; i++) {
             char c = code[i];
 
-            if (c == ' ' || c == '\t') {
+            if (c == ' ' || c == '\t' || c == '\r') {
                 continue;
             }
 
