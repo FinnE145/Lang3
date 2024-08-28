@@ -1,4 +1,5 @@
 using Lang3.Utils;
+using static Lang3.Utils.Errors.ErrorNames;
 
 namespace Lang3;
 
@@ -124,7 +125,7 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
             return;
         } else {
             // TODO: add a new error type for this
-            err.Raise(Errors.ErrorNames.Error, "Unmatched parenthesis", tokens[i]);
+            err.Raise(Error, "Unmatched parenthesis", tokens[i]);
         }
     }
 
@@ -134,7 +135,7 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
         i++;
         if (!Parse(tokens, op, ref i, maxTokens: 1) || (op.children.Count > 0 && !valueTypes.Contains(op.children[^1].type))) {
             // TODO: add a new error type for this
-            err.Raise(Errors.ErrorNames.Error, $"Expected an expression after the {tokens[oldI].value} operator, but received {tokens[oldI+1].type}", tokens[oldI+1].type == "EOF" ? tokens[oldI] : tokens[oldI+1], false);
+            err.Raise(Error, $"Expected an expression after the {tokens[oldI].value} operator, but received {tokens[oldI+1].type}", tokens[oldI+1].type == "EOF" ? tokens[oldI] : tokens[oldI+1], false);
             i++;
         } else {
             root.children.Add(op);
@@ -145,7 +146,7 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
         Node op = new("operation", tokens[i].value, tokens[i]);
         if (root.children.Count == 0 || !valueTypes.Contains(root.children[0].type)) {
             // TODO: add a new error type for this
-            err.Raise(Errors.ErrorNames.Error, $"Expected an expression before the {tokens[i].value} operator, but received {tokens[i++].type}", tokens[i], false);
+            err.Raise(Error, $"Expected an expression before the {tokens[i].value} operator, but received {tokens[i++].type}", tokens[i], false);
         } else {
             op.children.Add(root.children[^1]);
             root.children.RemoveAt(root.children.Count - 1);
@@ -193,7 +194,7 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
         i++;
         if (root.children.Count == 0 || !valueTypes.Contains(root.children[0].type)) {
             // TODO: add a new error type for this
-            err.Raise(Errors.ErrorNames.Error, $"Expected an expression before the {tokens[i-1].value} operator, but received {tokens[i-2].type}", tokens[i-2], false);
+            err.Raise(Error, $"Expected an expression before the {tokens[i-1].value} operator, but received {(i-2 >= 0 ? tokens[i-2].type : "nothing")}", tokens[i-2 >= 0 ? i-2 : i-1], false);
         } else {
             bool addNode = SwitchArgs(op, root.children[^1], root);
 
@@ -208,7 +209,7 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
                 }
             } else {
                 // TODO: add a new error type for this
-                err.Raise(Errors.ErrorNames.Error, $"Expected an expression after the {tokens[oldI-1].value} operator, but received {tokens[oldI].type}", tokens[oldI], false);
+                err.Raise(Error, $"Expected an expression after the {tokens[oldI-1].value} operator, but received {tokens[oldI].type}", tokens[oldI], false);
             }
         }
     }
@@ -248,7 +249,7 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
             }
 
             if (t.type == "rParen") {
-                err.Raise(Errors.ErrorNames.Error, "Unexpected right parenthesis", t, false);
+                err.Raise(Error, "Unexpected right parenthesis", t, false);
                 return false;
             }
             
@@ -269,11 +270,11 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
                     }
                     /* } else if (preValue && postValue) {
                         // TODO: add a new error type for this
-                        err.Raise(Errors.ErrorNames.Error, "Unary operators cannot be both pre and post. Use parentheses to remove ambiguity.", t, false);
+                        err.Raise(Error, "Unary operators cannot be both pre and post. Use parentheses to remove ambiguity.", t, false);
                         i++;
                     } else {
                         // TODO: add a new error type for this
-                        err.Raise(Errors.ErrorNames.Error, "Expected expression before or after unary operator", t, false);
+                        err.Raise(Error, "Expected expression before or after unary operator", t, false);
                         i++;
                     } */
                 } else {
@@ -298,7 +299,7 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
                 continue;
             }
 
-            err.Raise(Errors.ErrorNames.InternalError, $"Unexpected token {t.ToString(false)} at {i}", t, false);
+            err.Raise(InternalError, $"Unexpected token {t.ToString(false)} at {i}", t, false);
             i++;
 
             if (lastIs.Count == 3 && lastIs[0] == lastIs[1] && lastIs[1] == lastIs[2] && lastIs[2] == i) {
