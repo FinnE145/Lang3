@@ -131,9 +131,9 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
     private void ParsePreUnaryOps(List<Lexer.Token> tokens, Node root, ref int i) {
         Node op = new("operation", tokens[i].value, tokens[i]);
         i++;
-        if (!Parse(tokens, op, ref i, maxTokens: 1) || !valueTypes.Contains(op.children[^1].type)) {
+        if (!Parse(tokens, op, ref i, maxTokens: 1) || (op.children.Count > 0 && !valueTypes.Contains(op.children[^1].type))) {
             // TODO: add a new error type for this
-            err.Raise(Errors.ErrorNames.Error, "Expected expression after unary operator", tokens[i], false);
+            err.Raise(Errors.ErrorNames.Error, $"Expected an expression after the {tokens[i-2].value} operator", tokens[i-1], false);
             i++;
         } else {
             root.children.Add(op);
@@ -144,7 +144,7 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
         Node op = new("operation", tokens[i].value, tokens[i]);
         if (root.children.Count == 0 || !valueTypes.Contains(root.children[0].type)) {
             // TODO: add a new error type for this
-            err.Raise(Errors.ErrorNames.Error, $"Expected a value before the operator {tokens[i].value}", tokens[i-1], false);
+            err.Raise(Errors.ErrorNames.Error, $"Expected an expression before the {tokens[i].value} operator", tokens[i], false);
         } else {
             op.children.Add(root.children[^1]);
             root.children.RemoveAt(root.children.Count - 1);
@@ -158,7 +158,7 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
         i++;
         if (root.children.Count == 0 || !valueTypes.Contains(root.children[0].type)) {
             // TODO: add a new error type for this
-            err.Raise(Errors.ErrorNames.Error, "Expected a value before the operator", tokens[i], false);
+            err.Raise(Errors.ErrorNames.Error, "Expected an expression before the operator", tokens[i-2], false);
         } else {
             op.children.Add(root.children[^1]);
             root.children.RemoveAt(root.children.Count - 1);
