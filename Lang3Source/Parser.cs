@@ -67,7 +67,7 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
 
     readonly Errors err = new(fileCode);
 
-    private static readonly List<string> valueTypes = ["number", "parens", "operator", "var"];
+    private static readonly List<string> valueTypes = ["number", "parens", "operation", "var"];
 
     private static readonly Dictionary<string, int> precedence = new() {
         {"add", 1},
@@ -111,6 +111,8 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
         {"not", 4}
     };
 
+    List<int> lastIs = [];
+
     private void ParseParens(List<Lexer.Token> tokens, Node root, ref int i) {
         Node node = new("parens", "", tokens[i]);
         root.children.Add(node);
@@ -128,24 +130,53 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
 
     private void ParsePreUnaryOps(List<Lexer.Token> tokens, Node root, ref int i) {
         Node op = new("operation", tokens[i].value, tokens[i]);
-        root.children.Add(op);
         i++;
         if (!Parse(tokens, op, ref i, maxTokens: 1) || !valueTypes.Contains(op.children[^1].type)) {
             // TODO: add a new error type for this
             err.Raise(Errors.ErrorNames.Error, "Expected expression after unary operator", tokens[i], false);
             i++;
+        } else {
+            root.children.Add(op);
         }
     }
 
     private void ParsePostUnaryOps(List<Lexer.Token> tokens, Node root, ref int i) {
         Node op = new("operation", tokens[i].value, tokens[i]);
-        op.children.Add(root.children[^1]);
-        root.children.RemoveAt(root.children.Count - 1);
-        root.children.Add(op);
+        if (root.children.Count == 0 || !valueTypes.Contains(root.children[0].type)) {
+            // TODO: add a new error type for this
+            err.Raise(Errors.ErrorNames.Error, $"Expected a value before the operator {tokens[i].value}", tokens[i-1], false);
+        } else {
+            op.children.Add(root.children[^1]);
+            root.children.RemoveAt(root.children.Count - 1);
+            root.children.Add(op);
+        }
         i++;
     }
 
+    private void ParseBinaryOps(List<Lexer.Token> tokens, Node root, ref int i) {
+        Node op = new("operation", tokens[i].value, tokens[i]);
+        i++;
+        if (root.children.Count == 0 || !valueTypes.Contains(root.children[0].type)) {
+            // TODO: add a new error type for this
+            err.Raise(Errors.ErrorNames.Error, "Expected a value before the operator", tokens[i], false);
+        } else {
+            op.children.Add(root.children[^1]);
+            root.children.RemoveAt(root.children.Count - 1);
+            Node argHolder = new("argHolder", "", new("", "", 0, 0, 0, ""));
+            bool parseResult = Parse(tokens, argHolder, ref i, maxTokens: 1);
+
+            if (parseResult && argHolder.children.Count != 0 && valueTypes.Contains(argHolder.children[^1].type)) {
+                op.children.Add(argHolder.children[^1]);
+                root.children.Add(op);
+            } else {
+                // TODO: add a new error type for this
+                err.Raise(Errors.ErrorNames.Error, "Expected a value after the operator", tokens[i], false);
+            }
+        }
+    }
+
     public Node Parse(string fp) {
+        Console.ForegroundColor = ConsoleColor.White;
         List<Lexer.Token> tokens = fileTokens[fp];
 
         Node root = new("root", "", new("", "", 0, 0, 0, fp));
@@ -155,7 +186,6 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
     }
 
     private bool Parse(List<Lexer.Token> tokens, Node node, ref int i, string endType = "<NOT_A_TYPE>", int maxTokens = -1) {
-        List<int> lastIs = [];
         int startI = i;
 
         while (i < tokens.Count) {
@@ -210,7 +240,7 @@ class Parser(Dictionary<string, string> fileCode, Dictionary<string, List<Lexer.
                         i++;
                     } */
                 } else {
-                    err.Raise(Errors.ErrorNames.InternalError, "Binary operators not implemented yet", t, false);
+                    ParseBinaryOps(tokens, node, ref i);
                 }
                 continue;
             }
