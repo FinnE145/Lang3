@@ -45,7 +45,7 @@ class Lang3Runner {
         try {
             string fp;
             if (args.Length == 0) {
-                fp = "C:/Users/finne/OneDrive/Documents/0coding/Lang3_Ghub/Lang3 Test Files/test.l3";
+                fp = "C:/Users/finne/OneDrive/Documents/0coding/Lang3_Ghub/Lang3TestFiles/test.l3";
                 //fp = "nonexistantFile.l3";
             } else {
                 fp = args[0];
