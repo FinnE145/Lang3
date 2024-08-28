@@ -92,6 +92,11 @@ class Lexer(Dictionary<string, string> fileCode) {
         {";", "rCode"}
     };
 
+    private readonly Dictionary<string, string> symbols = new() {
+        {",", "comma"},
+        {".", "dot"}
+    };
+
     internal static readonly List<char> opStarts = [];
 
     private Token BucketNum(int line, int ld, string fp, ref int i) {
@@ -135,6 +140,11 @@ class Lexer(Dictionary<string, string> fileCode) {
         }
         string s = code[start..i--];
         return new Token(keywords.TryGetValue(s, out string? value) ? value : "var", s, line, start-ld, i-ld+1, fp);
+    }
+
+    private Token BucketSymbol(int line, int ld, string fp, ref int i) {
+        string code = fileCode[fp]!;
+        return new Token(symbols[code[i].ToString()], code[i].ToString(), line, i-ld, i-ld+1, fp);
     }
 
     public List<Token> Lex(string fp) {
@@ -185,7 +195,12 @@ class Lexer(Dictionary<string, string> fileCode) {
                 continue;
             }
 
-            string v = c != '\n' ? c.ToString() : "\\n";
+            if (symbols.ContainsKey(c.ToString())) {
+                tokens.Add(BucketSymbol(line, ld, fp, ref i));
+                continue;
+            }
+
+            err.Raise(MalformedTokenError, "Unknown character", fp, line, i-ld, i-ld+1);
         }
 
         tokens.Add(new Token("EOF", "", line, code.Length, code.Length, fp));
