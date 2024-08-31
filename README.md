@@ -1,8 +1,6 @@
 # Lang3
 A lightweight statically typed OOP scripting language with flexible structures.
 
-> IMPORTANT NOTE: Currently, Lang3 can only parse operators, and does not have an interpreter. This means you can run mathematical operations including variables successfully, and will be able to view lexer and parser output.
-
 > For a thorough introduction to Lang3, and more information on syntax, structures, and other aspects and features of the language, check out the [Documentation Jupyter Notebook](https://github.com/FinnE145/Lang3/blob/main/Docs/Lang3Docs.ipynb). Soon, a website will be linked here with documentation, download options, and a page to write Lang3 code in your browser and run it on our servers.
 
 > Note that Lang3 is a placeholder name, and will be changed at a later date. If you have a name suggestion, submit an [issue](https://github.com/FinnE145/Lang3/issues/new) with the [`enhancement`](https://github.com/FinnE145/Lang3/labels/enhancement) tag.
@@ -42,7 +40,7 @@ Lang3 also has a variety of small quality-of-life improvements to existing mains
 
 This repository includes an ipykernel kernel for use with Jupyter Notebooks.
 
-> Note: Currently, all the kernel does is echo whatever is sent to it, using code from [Jupyter](https://github.com/jupyter/echo_kernel). This will be changed as Lang3 is developed.
+> Note: Currently, all the kernel does is echo whatever is sent to it, using code from [Jupyter](https://github.com/jupyter/echo_kernel). This will be changed as Lang3 is developed. In the meantime, feel free to compile the Lang3 source code and modify the kernel to run the executable yourself, or have it run `dotnet publish` automatically on startup. It shouldn't be too difficult to implement (I just don't have the time) and you can check out a similar python implementation for the [Lang3 Website](https://lang3.fmje.dev/run) [here](https://github.com/FinnE145/Lang3Website/blob/main/codeRunner.py) to guide you. If you do it, be sure to submit a pull request!
 
 To use the kernel, you must create a Python virtual environment and install ipykernel before installing the kernel.
 
