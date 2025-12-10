@@ -1,1 +1,28 @@
-++1 + 2 + 3++
+val = 10
+str s = f"abc\ndef\"ghi{val}"
+dec d = 10.0001
+list[str] li = [s]
+
+# :a; must be convertable to :int; or you could get a !TypeError; and :b; must
+# be addable to an :int;. Note that :inputOrDefault; expects ints as defaults
+code c = [a, b]:
+    print(r = (a as int + b))
+    return r
+;{10, 20}
+
+### Input or Default function ###
+## Adds default arguments to a function, so that when that function is called
+without input, the default args are used. ##
+code inputOrDefault = [code f, list[int] defaults]:
+    list args = []
+    for (defaults -> i, v), :
+        if arg = io.pRead("Enter a value for arg no. {i} or leave blank (default is {v})") == "stop":
+            break
+        ; else :
+            args(?) = arg else defaults(i)
+        ;
+    ;
+    return f{args ->}
+;
+
+inputOrDefault(c, [1, 2])(10.0)
